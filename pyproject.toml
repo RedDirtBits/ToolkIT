@@ -1,0 +1,6 @@
+# pytest settings. pyproject.toml is the standard place for Python tool config.
+[tool.pytest.ini_options]
+# Look for tests only in tests/ (not in scratch/ or the venv).
+testpaths = ["tests"]
+# Let tests "import app..." from the project root.
+pythonpath = ["."]
