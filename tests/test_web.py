@@ -259,3 +259,20 @@ def test_post_from_another_site_is_refused(client):
 def test_post_from_own_page_is_allowed(client):
     response = client.post("/ip", data={"count": "5"}, headers={"Origin": "http://testserver", **HTMX})
     assert response.status_code == 200
+
+
+# --- Clear buttons -------------------------------------------------------------------------------
+
+
+def test_every_tool_has_a_clear_button(client):
+    page = client.get("/").text
+    for key in ("ip", "mac", "convert"):
+        # Each tool's form runs from its action="/<key>" to its result area.
+        form = page[page.index(f'action="/{key}"') : page.index(f'id="{key}-result"')]
+        assert '<button type="reset" class="secondary">Clear</button>' in form
+        assert f'id="{key}-result" class="result"' in page
+
+
+def test_app_js_clears_results_on_reset(client):
+    script = client.get("/static/app.js").text
+    assert 'addEventListener("reset"' in script

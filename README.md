@@ -62,7 +62,8 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
   each with its own Copy button.
 
 Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
-them. `?tab=mac` or `?tab=convert` in the address opens another tab directly (handy as a bookmark).
+them; **Clear** resets one tab (fields back to defaults, result removed), and reloading the page clears
+all of them. `?tab=mac` or `?tab=convert` in the address opens another tab directly (handy as a bookmark).
 
 ## Folder layout
 

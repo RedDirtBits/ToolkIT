@@ -22,3 +22,20 @@ document.addEventListener("click", async (event) => {
   }
   setTimeout(() => { button.textContent = label; }, 1500);
 });
+
+// Clear button: <button type="reset"> already puts the form's fields back to
+// their defaults (that's built into HTML). This adds the part HTML can't do:
+// emptying the same tab's result area, then putting the cursor in the first
+// field, ready for the next input. Without JavaScript, the fields still reset.
+document.addEventListener("reset", (event) => {
+  const tool = event.target.closest(".tool");
+  if (!tool) return;
+  const result = tool.querySelector(".result");
+  if (result) result.innerHTML = "";
+  // The "reset" event fires just BEFORE the fields are reset, so wait a
+  // moment (setTimeout 0 = "right after this") before moving the cursor.
+  setTimeout(() => {
+    const first = event.target.querySelector("textarea, input:not([type=hidden]):not([type=radio]):not([type=checkbox])");
+    if (first) first.focus();
+  }, 0);
+});

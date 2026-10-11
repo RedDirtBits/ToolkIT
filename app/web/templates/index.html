@@ -8,6 +8,10 @@
    panels are only hidden, never removed, each tab keeps its form and result
    while you look at another tab.
 
+   Clear: a type="reset" button puts the form's fields back to how the page
+   first loaded them (the defaults). app.js also empties that tab's result.
+   Other tabs aren't touched. Reloading the page clears all tabs.
+
    Variables:
      tab                    which tab starts selected ("ip", "mac", "convert")
      ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
@@ -46,6 +50,7 @@
         </select>
       </label>
       <button type="submit">Generate</button>
+      <button type="reset" class="secondary">Clear</button>
     </div>
     <p class="hint muted">
       Give a <b>network</b> to fill it completely, a <b>count</b> to get a subnet sized for it
@@ -55,7 +60,7 @@
       Never repeats an address; skips network and broadcast; up to 65,534 at a time.
     </p>
   </form>
-  <div id="ip-result">
+  <div id="ip-result" class="result">
     {% if ip_result %}{% with result = ip_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
@@ -85,6 +90,7 @@
       {% set style = f.style or 'colon' %}
       {% include "_mac_format_fields.html" %}
       <button type="submit">Generate</button>
+      <button type="reset" class="secondary">Clear</button>
     </div>
     <p class="hint muted">
       <b>Locally administered</b> MACs (second digit 2, 6, a or e) can't clash with a real vendor's
@@ -92,7 +98,7 @@
       vendors' addresses. Never repeats a MAC, never a multicast address; up to 65,534 at a time.
     </p>
   </form>
-  <div id="mac-result">
+  <div id="mac-result" class="result">
     {% if mac_result %}{% with result = mac_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
@@ -108,13 +114,14 @@
     <div class="fields">
       <label class="check"><input type="checkbox" name="upper" {{ 'checked' if f.upper == 'on' }}> Uppercase</label>
       <button type="submit">Convert</button>
+      <button type="reset" class="secondary">Clear</button>
     </div>
     <p class="hint muted">
       Shows every format at once, each with its own Copy button. Reads <code>aa:bb:cc:dd:ee:ff</code>, <code>aa-bb-cc-dd-ee-ff</code>, <code>aabb.ccdd.eeff</code>
       and <code>aabbccddeeff</code>, in any case. Lines that aren't MACs are listed, not dropped silently.
     </p>
   </form>
-  <div id="convert-result">
+  <div id="convert-result" class="result">
     {% if convert_result %}{% with result = convert_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
