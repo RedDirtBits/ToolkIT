@@ -12,16 +12,16 @@ How a hostname is faked:
      - changes between letters and digits, so names without separators still have parts.
 
        exsite-wing-bld01a-cor-01  ->  exsite | - | wing | - | bld | 01 | a | - | cor | - | 01
-       hq6500a                   ->  hq | 6500 | a
+       hq6500a                    ->  hq | 6500 | a
 
 2. A piece on the user's keep list (whole piece, ignoring case) stays as it is. With "cor" and "hq"
    kept, the device role and site prefix stay readable.
 3. Every other piece is replaced by random characters of the same kind and length (letters become
    letters, digits become digits), and **the same real piece always gets the same fake piece**:
 
-       exsite-wing-bld01a-cor-01  ->  kauti-bueh-pra30n-cor-58
-       exsite-wing-bld01a-dst-01  ->  kauti-bueh-pra30n-dst-58      (same site, still visibly so)
-       hq6500a                   ->  hq2914k
+       exsite-wing-bld01a-cor-01  ->  kautim-bueh-pra30n-cor-58
+       exsite-wing-bld01a-dst-01  ->  kautim-bueh-pra30n-dst-58      (same site, still visibly so)
+       hq6500a                    ->  hq2914k
 
 Rules:
 - Blank lines stay blank, so the output lines up row for row with the input.
