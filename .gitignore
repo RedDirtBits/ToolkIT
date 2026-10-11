@@ -27,3 +27,7 @@ python/
 .env
 *.key
 *.pem
+
+# Kept locally, not published
+CLAUDE.md
+LEARNING.md
