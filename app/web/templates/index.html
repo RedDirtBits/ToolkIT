@@ -106,12 +106,11 @@
     <textarea name="macs" class="output paste" rows="8" spellcheck="false"
               placeholder="Paste MAC addresses, one per line:&#10;02:1a:2b:3c:4d:5e&#10;021a.2b3c.4d5f&#10;02-1A-2B-3C-4D-60">{{ f.macs or '' }}</textarea>
     <div class="fields">
-      {% set style = f.style or 'colon' %}
-      {% include "_mac_format_fields.html" %}
+      <label class="check"><input type="checkbox" name="upper" {{ 'checked' if f.upper == 'on' }}> Uppercase</label>
       <button type="submit">Convert</button>
     </div>
     <p class="hint muted">
-      Reads <code>aa:bb:cc:dd:ee:ff</code>, <code>aa-bb-cc-dd-ee-ff</code>, <code>aabb.ccdd.eeff</code>
+      Shows every format at once, each with its own Copy button. Reads <code>aa:bb:cc:dd:ee:ff</code>, <code>aa-bb-cc-dd-ee-ff</code>, <code>aabb.ccdd.eeff</code>
       and <code>aabbccddeeff</code>, in any case. Lines that aren't MACs are listed, not dropped silently.
     </p>
   </form>

@@ -19,9 +19,12 @@ def client():
     return TestClient(create_app(allowed_hosts={"testserver"}))
 
 
-def output_lines(html: str) -> list[str]:
-    """Pull the result lines out of the result block's <textarea>."""
-    start = html.index('class="output"')
+def output_lines(html: str, box: str = "") -> list[str]:
+    """Pull the result lines out of an output box's <textarea>.
+
+    `box` is the box's id (e.g. "convert-dotted-output"); left empty, the first result box is used.
+    """
+    start = html.index(f'id="{box}"') if box else html.index('name="content"')
     body = html[html.index(">", start) + 1 : html.index("</textarea>", start)]
     return body.splitlines()
 
@@ -153,12 +156,51 @@ def test_mac_errors_are_shown(client, data, message):
 # --- MAC converter -------------------------------------------------------------------------------
 
 
+def test_convert_single_mac_shows_every_format(client):
+    response = client.post("/convert", data={"macs": "02-1A-2B-3C-4D-5E"}, headers=HTMX)
+    page = response.text
+    assert output_lines(page, "convert-colon-output") == ["02:1a:2b:3c:4d:5e"]
+    assert output_lines(page, "convert-hyphen-output") == ["02-1a-2b-3c-4d-5e"]
+    assert output_lines(page, "convert-dotted-output") == ["021a.2b3c.4d5e"]
+    # Each box has its own Copy button and its own download name.
+    for style in ("colon", "hyphen", "dotted"):
+        assert f'data-copy="convert-{style}-output"' in page
+        assert f'name="kind" value="convert-{style}"' in page
+
+
 def test_convert_with_a_bad_line(client):
     pasted = "02:1a:2b:3c:4d:5e\nnot a mac\n021a.2b3c.4d5f\n"
-    response = client.post("/convert", data={"macs": pasted, "style": "hyphen"}, headers=HTMX)
-    assert output_lines(response.text) == ["02-1a-2b-3c-4d-5e", "02-1a-2b-3c-4d-5f"]
+    response = client.post("/convert", data={"macs": pasted}, headers=HTMX)
+    assert output_lines(response.text, "convert-hyphen-output") == ["02-1a-2b-3c-4d-5e", "02-1a-2b-3c-4d-5f"]
     assert "2 converted, 1 skipped" in response.text
     assert "Line 2 skipped, not a MAC: not a mac" in response.text
+
+
+def test_convert_uppercase_applies_to_every_format(client):
+    response = client.post("/convert", data={"macs": "02:1a:2b:3c:4d:5e", "upper": "on"}, headers=HTMX)
+    assert output_lines(response.text, "convert-colon-output") == ["02:1A:2B:3C:4D:5E"]
+    assert output_lines(response.text, "convert-dotted-output") == ["021A.2B3C.4D5E"]
+
+
+def test_convert_with_only_bad_lines_shows_no_boxes(client):
+    response = client.post("/convert", data={"macs": "junk\nmore junk"}, headers=HTMX)
+    assert "0 converted, 2 skipped" in response.text
+    assert 'name="content"' not in response.text
+
+
+def test_converter_form_has_no_format_dropdown(client):
+    page = client.get("/?tab=convert").text
+    form = page[page.index('action="/convert"') : page.index('id="convert-result"')]
+    assert 'name="style"' not in form
+
+
+@pytest.mark.parametrize(
+    "kind, file_name",
+    [("convert-colon", "mac-colon.txt"), ("convert-hyphen", "mac-hyphen.txt"), ("convert-dotted", "mac-dotted.txt")],
+)
+def test_converter_download_names(client, kind, file_name):
+    response = client.post("/download", data={"kind": kind, "content": "02:1a:2b:3c:4d:5e"})
+    assert response.headers["content-disposition"] == f'attachment; filename="{file_name}"'
 
 
 def test_convert_caps_the_warning_list(client):

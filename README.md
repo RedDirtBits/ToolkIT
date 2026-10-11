@@ -17,8 +17,8 @@ internet access. ToolkIT puts these tools in one local page that works offline.
   or broadcast addresses. Output as plain IPs, with prefix, or with mask.
 - **Random MAC generator:** locally administered addresses by default (safe fakes that can't clash with a
   real vendor), fully random, or with a chosen OUI prefix.
-- **MAC format converter:** paste one or many MACs and convert between `aa:bb:cc:dd:ee:ff`,
-  `aa-bb-cc-dd-ee-ff` and `aabb.ccdd.eeff`, upper or lower case.
+- **MAC format converter:** paste one or many MACs and see them in every format at once
+  (`aa:bb:cc:dd:ee:ff`, `aa-bb-cc-dd-ee-ff`, `aabb.ccdd.eeff`), each with its own Copy button.
 - Copy to clipboard or download results.
 
 ## Project status
@@ -58,7 +58,8 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
 - **IP generator:** type a count, a network, or both, pick the output style and click **Generate**.
 - **MAC generator:** type a count, choose locally administered (safe fakes), fully random or a given OUI
   prefix, pick the format and click **Generate**.
-- **MAC converter:** paste MACs one per line, pick the format and click **Convert**.
+- **MAC converter:** paste MACs one per line and click **Convert**: every format appears side by side,
+  each with its own Copy button.
 
 Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
 them. `?tab=mac` or `?tab=convert` in the address opens another tab directly (handy as a bookmark).

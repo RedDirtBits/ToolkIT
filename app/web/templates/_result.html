@@ -1,5 +1,6 @@
-{# _result.html — one tool's result block. htmx swaps this into the page
-   under the tool's form; index.html also includes it for no-JS posts.
+{# _result.html — one tool's result: summary, warnings, and one or more
+   output boxes. htmx swaps this into the page under the tool's form;
+   index.html also includes it for no-JS posts.
    Expects: result (a ToolResult from web/responses.py). #}
 {% if result.error %}
   <div class="flash bad">{{ result.error }}</div>
@@ -9,19 +10,26 @@
     {% for warning in result.warnings %}
       <div class="warn-text">{{ warning }}</div>
     {% endfor %}
-    {% if result.lines %}
-      {# The output lives in a form, so "Download" can post it to /download and
-         get back exactly what's on screen (see routes/download.py). #}
-      <form method="post" action="/download">
-        <input type="hidden" name="kind" value="{{ result.kind }}">
-        <div class="toolbar">
-          {# Copy needs JavaScript (app.js); without it, select the text by hand. #}
-          <button type="button" class="secondary" data-copy="{{ result.kind }}-output">Copy</button>
-          <button type="submit" class="secondary">Download .txt</button>
-        </div>
-        <textarea name="content" id="{{ result.kind }}-output" class="output" readonly spellcheck="false"
-                  rows="{{ [result.lines | length, 20] | min }}">{{ result.lines | join('\n') }}</textarea>
-      </form>
-    {% endif %}
+    {# One box per OutputBlock: the generators have one, the converter one per
+       format. "blocks" lays several out side by side (see style.css). #}
+    <div class="blocks">
+      {% for block in result.blocks if block.lines %}
+        {% set box_id = block.download ~ "-output" %}
+        {# Each box lives in its own form, so "Download" posts that box's text
+           to /download and gets back exactly what's on screen
+           (see routes/download.py). #}
+        <form method="post" action="/download" class="block-form">
+          <input type="hidden" name="kind" value="{{ block.download }}">
+          <div class="toolbar">
+            {% if block.title %}<h3 class="block-title">{{ block.title }}</h3>{% endif %}
+            {# Copy needs JavaScript (app.js); without it, select the text by hand. #}
+            <button type="button" class="secondary" data-copy="{{ box_id }}">Copy</button>
+            <button type="submit" class="secondary">Download .txt</button>
+          </div>
+          <textarea name="content" id="{{ box_id }}" class="output" readonly spellcheck="false"
+                    rows="{{ [block.lines | length, 20] | min }}">{{ block.lines | join('\n') }}</textarea>
+        </form>
+      {% endfor %}
+    </div>
   </div>
 {% endif %}

@@ -21,7 +21,9 @@ router = APIRouter()
 FILE_NAMES = {
     "ip": "ip-addresses.txt",
     "mac": "mac-addresses.txt",
-    "convert": "mac-converted.txt",
+    "convert-colon": "mac-colon.txt",
+    "convert-hyphen": "mac-hyphen.txt",
+    "convert-dotted": "mac-dotted.txt",
 }
 
 

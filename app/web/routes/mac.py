@@ -10,7 +10,7 @@ from fastapi import APIRouter, Form, Request
 from app.tools.mac_format import MACError
 from app.tools.mac_generator import MACGeneratorError, generate_formatted
 from app.web.forms import FormError, is_checked, parse_count
-from app.web.responses import ToolResult, tool_response
+from app.web.responses import OutputBlock, ToolResult, tool_response
 
 router = APIRouter()
 
@@ -46,4 +46,5 @@ def generate(
     summary = f"{len(lines):,} {MODE_NAMES.get(mode, mode)} MAC addresses"
     if mode == "oui":
         summary += f" with prefix {oui.strip()}"
-    return tool_response(request, ToolResult(kind="mac", summary=summary, lines=lines), form)
+    result = ToolResult(kind="mac", summary=summary, blocks=[OutputBlock(download="mac", lines=lines)])
+    return tool_response(request, result, form)

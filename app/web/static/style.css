@@ -151,3 +151,9 @@ fieldset.choices label { display: inline-flex; gap: 6px; align-items: center; }
 textarea.output { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font: 13px/1.45 var(--mono); resize: vertical; }
 textarea.output:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
 textarea.paste { margin: 4px 0; }
+
+/* --- Several output boxes side by side (MAC converter: one per format) ---
+   auto-fit + minmax: as many 280px-or-wider columns as fit; on a narrow
+   window they wrap and stack. A single box simply takes the full width. */
+.blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.block-title { margin: 0; min-width: 7em; }

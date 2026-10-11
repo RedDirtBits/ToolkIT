@@ -2,7 +2,14 @@
 
 import pytest
 
-from app.tools.mac_format import MACError, convert_lines, format_mac, parse_mac
+from app.tools.mac_format import (
+    FORMATS,
+    MACError,
+    convert_all_formats,
+    convert_lines,
+    format_mac,
+    parse_mac,
+)
 
 # One made-up MAC as an integer, used throughout.
 VALUE = 0x021A2B3C4D5E
@@ -110,3 +117,27 @@ def test_convert_empty_input():
 def test_convert_bad_style_is_one_error():
     with pytest.raises(MACError):
         convert_lines("02:1a:2b:3c:4d:5e\n02:1a:2b:3c:4d:5f", "bare")
+
+
+# --- convert_all_formats -------------------------------------------------------------------------
+
+
+def test_convert_all_formats_single_mac():
+    result = convert_all_formats("02-1A-2B-3C-4D-5E")
+    assert result.by_format == {
+        "colon": ["02:1a:2b:3c:4d:5e"],
+        "hyphen": ["02-1a-2b-3c-4d-5e"],
+        "dotted": ["021a.2b3c.4d5e"],
+    }
+    assert result.errors == []
+
+
+def test_convert_all_formats_keeps_format_order():
+    assert list(convert_all_formats("02:1a:2b:3c:4d:5e").by_format) == list(FORMATS)
+
+
+def test_convert_all_formats_many_upper_with_bad_line():
+    result = convert_all_formats("02:1a:2b:3c:4d:5e\nnope\n021a.2b3c.4d5f", upper=True)
+    assert result.by_format["dotted"] == ["021A.2B3C.4D5E", "021A.2B3C.4D5F"]
+    assert result.by_format["colon"] == ["02:1A:2B:3C:4D:5E", "02:1A:2B:3C:4D:5F"]
+    assert result.errors == [(2, "nope")]

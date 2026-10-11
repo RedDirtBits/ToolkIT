@@ -12,7 +12,7 @@ from fastapi import APIRouter, Form, Request
 
 from app.tools.ip_generator import IPGeneratorError, format_ips, generate_ips, parse_target
 from app.web.forms import FormError, parse_count
-from app.web.responses import ToolResult, tool_response
+from app.web.responses import OutputBlock, ToolResult, tool_response
 
 router = APIRouter()
 
@@ -48,4 +48,5 @@ def generate(
     summary = f"{len(lines):,} addresses from {net} (mask {net.netmask}, {usable:,} usable)"
     if origin:
         summary += f" · {origin}"
-    return tool_response(request, ToolResult(kind="ip", summary=summary, lines=lines), form)
+    result = ToolResult(kind="ip", summary=summary, blocks=[OutputBlock(download="ip", lines=lines)])
+    return tool_response(request, result, form)

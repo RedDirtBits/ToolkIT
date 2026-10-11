@@ -23,20 +23,36 @@ from app.web.templating import render
 
 
 @dataclass
+class OutputBlock:
+    """One output box with its own Copy and Download buttons.
+
+    The generators produce one block; the MAC converter one per format.
+
+    download  key into routes/download.py's FILE_NAMES; also makes the box's id unique
+    lines     the output, one item per line
+    title     heading over the box ("Colon"), or "" for none
+    """
+
+    download: str
+    lines: list[str]
+    title: str = ""
+
+
+@dataclass
 class ToolResult:
     """What one tool produced, ready for the _result.html template.
 
-    kind      the tool's tab key ("ip", "mac", "convert"); also picks the download file name
-    error     a message for the user if the request was refused (then lines is empty)
+    kind      the tool's tab key ("ip", "mac", "convert")
+    error     a message for the user if the request was refused (then blocks is empty)
     summary   one line describing the result, e.g. "300 addresses from 172.22.14.0/23"
-    lines     the output, one item per line
+    blocks    the output boxes
     warnings  things worth knowing that didn't stop the result (e.g. skipped lines)
     """
 
     kind: str
     error: str | None = None
     summary: str = ""
-    lines: list[str] = field(default_factory=list)
+    blocks: list[OutputBlock] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
 
