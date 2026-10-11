@@ -25,10 +25,10 @@ internet access. ToolkIT puts these tools in one local page that works offline.
 
 | Piece | What it does | Status |
 |---|---|---|
-| IP generator | Random IPs by subnet or count | core done (no page yet) |
-| MAC generator | Random MACs, locally administered by default | core done (no page yet) |
-| MAC converter | Convert between MAC formats | core done (no page yet) |
-| Web UI | One local page for all tools | planned |
+| IP generator | Random IPs by subnet or count | done |
+| MAC generator | Random MACs, locally administered by default | done |
+| MAC converter | Convert between MAC formats | done |
+| Web UI | One local page, a tab per tool | done |
 | OUI lookup | Vendor lookup from an offline IEEE list | later (v2) |
 | Hostname generator | Random hostnames from a pattern | later (v2) |
 
@@ -48,6 +48,30 @@ source ../venv/bin/activate          # the shared venv
 pip install -r requirements-dev.txt
 python -m app                        # start the app
 python -m pytest                     # run the tests
+```
+
+## How to use it
+
+Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser opens at
+`http://127.0.0.1:8780`. Pick a tab in the top bar:
+
+- **IP generator:** type a count, a network, or both, pick the output style and click **Generate**.
+- **MAC generator:** type a count, choose locally administered (safe fakes), fully random or a given OUI
+  prefix, pick the format and click **Generate**.
+- **MAC converter:** paste MACs one per line, pick the format and click **Convert**.
+
+Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
+them. `?tab=mac` or `?tab=convert` in the address opens another tab directly (handy as a bookmark).
+
+## Folder layout
+
+```
+ToolkIT/
+├── app/
+│   ├── tools/    # the tools themselves (pure Python, no web code)
+│   └── web/      # pages, forms, templates, CSS
+├── tests/        # pytest tests
+└── run.bat       # Windows launcher
 ```
 
 ## Running the tests

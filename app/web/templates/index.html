@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{# index.html — the main page: one tab per tool.
+
+   How the tabs work (no JavaScript needed):
+   Each tab is a hidden radio button plus its <label> in the top bar. Clicking
+   a label checks its radio button. CSS in style.css (ToolkIT section) hides
+   every tool panel except the one whose radio button is checked. Because the
+   panels are only hidden, never removed, each tab keeps its form and result
+   while you look at another tab.
+
+   Variables:
+     tab                    which tab starts selected ("ip", "mac", "convert")
+     ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
+                            to fill that tab's form back in and show its result #}
+
+{% block nav %}
+  {% for key, label in tabs %}
+    <input type="radio" name="tab" id="tab-{{ key }}" class="tab-radio" {{ 'checked' if tab == key }}>
+    <label for="tab-{{ key }}">{{ label }}</label>
+  {% endfor %}
+{% endblock %}
+
+{% block content %}
+
+{# ---- IP generator ---------------------------------------------------------- #}
+{% set f = ip_form or {} %}
+<section class="tool" id="tool-ip">
+  <form class="panel tool-form" method="post" action="/ip"
+        hx-post="/ip" hx-target="#ip-result" hx-swap="innerHTML">
+    <h2>Random IP addresses</h2>
+    <div class="fields">
+      <label>Count
+        <input name="count" inputmode="numeric" class="count" placeholder="e.g. 300"
+               value="{{ f.count or '' }}">
+      </label>
+      <label>Network
+        <input name="network" class="network" placeholder="e.g. 192.168.4.0/22"
+               value="{{ f.network or '' }}">
+      </label>
+      <label>Output
+        <select name="style">
+          {% for value, text in [("plain", "192.168.4.17"), ("prefix", "192.168.4.17/22"),
+                                 ("mask", "192.168.4.17 255.255.252.0")] %}
+            <option value="{{ value }}" {{ 'selected' if f.style == value }}>{{ text }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Generate</button>
+    </div>
+    <p class="hint muted">
+      Give a <b>network</b> to fill it completely, a <b>count</b> to get a subnet sized for it
+      (300 → /23) in a random 172.16/12 or 192.168/16 block, or both.
+      A network without a mask (172.20.0.0) plus a count builds the subnet there.
+      Masks: <code>/22</code>, <code>/255.255.252.0</code> or <code>192.168.4.0 255.255.252.0</code>.
+      Never repeats an address; skips network and broadcast; up to 65,534 at a time.
+    </p>
+  </form>
+  <div id="ip-result">
+    {% if ip_result %}{% with result = ip_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{# ---- MAC generator --------------------------------------------------------- #}
+{% set f = mac_form or {} %}
+<section class="tool" id="tool-mac">
+  <form class="panel tool-form" method="post" action="/mac"
+        hx-post="/mac" hx-target="#mac-result" hx-swap="innerHTML">
+    <h2>Random MAC addresses</h2>
+    <div class="fields">
+      <label>Count
+        <input name="count" inputmode="numeric" class="count" value="{{ f.count or '10' }}">
+      </label>
+      <fieldset class="choices">
+        <legend>Type</legend>
+        {% set mode = f.mode or 'local' %}
+        <label><input type="radio" name="mode" value="local" {{ 'checked' if mode == 'local' }}>
+          Locally administered</label>
+        <label><input type="radio" name="mode" value="random" {{ 'checked' if mode == 'random' }}>
+          Fully random</label>
+        <label><input type="radio" name="mode" value="oui" {{ 'checked' if mode == 'oui' }}>
+          With OUI prefix</label>
+        <input name="oui" class="oui" placeholder="00:1a:2b" value="{{ f.oui or '' }}"
+               aria-label="OUI prefix">
+      </fieldset>
+      {% set style = f.style or 'colon' %}
+      {% include "_mac_format_fields.html" %}
+      <button type="submit">Generate</button>
+    </div>
+    <p class="hint muted">
+      <b>Locally administered</b> MACs (second digit 2, 6, a or e) can't clash with a real vendor's
+      address, so they're the safe choice for fake data. <b>Fully random</b> MACs may look like real
+      vendors' addresses. Never repeats a MAC, never a multicast address; up to 65,534 at a time.
+    </p>
+  </form>
+  <div id="mac-result">
+    {% if mac_result %}{% with result = mac_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{# ---- MAC converter --------------------------------------------------------- #}
+{% set f = convert_form or {} %}
+<section class="tool" id="tool-convert">
+  <form class="panel tool-form" method="post" action="/convert"
+        hx-post="/convert" hx-target="#convert-result" hx-swap="innerHTML">
+    <h2>Convert MAC addresses</h2>
+    <textarea name="macs" class="output paste" rows="8" spellcheck="false"
+              placeholder="Paste MAC addresses, one per line:&#10;02:1a:2b:3c:4d:5e&#10;021a.2b3c.4d5f&#10;02-1A-2B-3C-4D-60">{{ f.macs or '' }}</textarea>
+    <div class="fields">
+      {% set style = f.style or 'colon' %}
+      {% include "_mac_format_fields.html" %}
+      <button type="submit">Convert</button>
+    </div>
+    <p class="hint muted">
+      Reads <code>aa:bb:cc:dd:ee:ff</code>, <code>aa-bb-cc-dd-ee-ff</code>, <code>aabb.ccdd.eeff</code>
+      and <code>aabbccddeeff</code>, in any case. Lines that aren't MACs are listed, not dropped silently.
+    </p>
+  </form>
+  <div id="convert-result">
+    {% if convert_result %}{% with result = convert_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{% endblock %}

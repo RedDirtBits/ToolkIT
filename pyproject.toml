@@ -4,3 +4,6 @@
 testpaths = ["tests"]
 # Let tests "import app..." from the project root.
 pythonpath = ["."]
+# Starlette's test client prints a deprecation notice about the httpx
+# package on every run; it's harmless for our tests.
+filterwarnings = ["ignore::DeprecationWarning:starlette.testclient", "ignore:Using `httpx`"]

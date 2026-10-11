@@ -1,0 +1,12 @@
+{# _mac_format_fields.html — the "Format" dropdown and "Uppercase" checkbox,
+   shared by the MAC generator and the MAC converter.
+   Expects: style (the selected format), f (the form's previous values). #}
+<label>Format
+  <select name="style">
+    {% for value, text in [("colon", "aa:bb:cc:dd:ee:ff"), ("hyphen", "aa-bb-cc-dd-ee-ff"),
+                           ("dotted", "aabb.ccdd.eeff")] %}
+      <option value="{{ value }}" {{ 'selected' if style == value }}>{{ text }}</option>
+    {% endfor %}
+  </select>
+</label>
+<label class="check"><input type="checkbox" name="upper" {{ 'checked' if f.upper == 'on' }}> Uppercase</label>

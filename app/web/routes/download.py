@@ -1,0 +1,46 @@
+"""
+download.py — save a tool's result as a .txt file.
+
+POST /download  with kind (which tool) and content (the result text).
+
+Why the browser sends the text back instead of the server re-running the
+tool: the tools are random, so running them again would give DIFFERENT
+addresses from the ones on screen. Echoing back what's shown guarantees the
+file matches the page.
+"""
+
+from fastapi import APIRouter, Request
+from fastapi.responses import PlainTextResponse, Response
+
+from app.web.forms import read_large_form
+
+router = APIRouter()
+
+# The file name for each tool. Only these names are ever used, so nothing
+# typed into a form can choose the file name.
+FILE_NAMES = {
+    "ip": "ip-addresses.txt",
+    "mac": "mac-addresses.txt",
+    "convert": "mac-converted.txt",
+}
+
+
+@router.post("/download")
+async def download(request: Request):
+    # A full /16 of results is about 2 MB, over Starlette's usual 1 MB limit
+    # per field, so the form is read with a larger limit (see read_large_form).
+    data = await read_large_form(request)
+    file_name = FILE_NAMES.get(data.get("kind", ""))
+    if file_name is None:
+        return PlainTextResponse("Unknown download.", status_code=400)
+
+    # Windows line endings (CRLF), so the file looks right in any Windows
+    # editor; Linux editors handle them fine too. Blank lines are dropped.
+    lines = [line for line in data.get("content", "").splitlines() if line.strip()]
+    body = "\r\n".join(lines) + "\r\n" if lines else ""
+    return Response(
+        content=body,
+        media_type="text/plain; charset=utf-8",
+        # "attachment" tells the browser to save the file instead of showing it.
+        headers={"Content-Disposition": f'attachment; filename="{file_name}"'},
+    )

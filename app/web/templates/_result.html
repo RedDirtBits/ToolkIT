@@ -1,0 +1,27 @@
+{# _result.html — one tool's result block. htmx swaps this into the page
+   under the tool's form; index.html also includes it for no-JS posts.
+   Expects: result (a ToolResult from web/responses.py). #}
+{% if result.error %}
+  <div class="flash bad">{{ result.error }}</div>
+{% else %}
+  <div class="panel">
+    <p class="summary">{{ result.summary }}</p>
+    {% for warning in result.warnings %}
+      <div class="warn-text">{{ warning }}</div>
+    {% endfor %}
+    {% if result.lines %}
+      {# The output lives in a form, so "Download" can post it to /download and
+         get back exactly what's on screen (see routes/download.py). #}
+      <form method="post" action="/download">
+        <input type="hidden" name="kind" value="{{ result.kind }}">
+        <div class="toolbar">
+          {# Copy needs JavaScript (app.js); without it, select the text by hand. #}
+          <button type="button" class="secondary" data-copy="{{ result.kind }}-output">Copy</button>
+          <button type="submit" class="secondary">Download .txt</button>
+        </div>
+        <textarea name="content" id="{{ result.kind }}-output" class="output" readonly spellcheck="false"
+                  rows="{{ [result.lines | length, 20] | min }}">{{ result.lines | join('\n') }}</textarea>
+      </form>
+    {% endif %}
+  </div>
+{% endif %}

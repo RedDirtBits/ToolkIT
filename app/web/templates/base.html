@@ -1,0 +1,39 @@
+<!doctype html>
+{# base.html — the frame every page shares: top bar, navigation, flash
+   messages. From the UI starter kit, with two ToolkIT changes:
+     - the nav is a {% block nav %} so index.html can put its tabs there
+     - no credentials bar (ToolkIT logs in to nothing)
+
+   Other templates "extend" this one and fill in the blocks:
+
+       {% extends "base.html" %}
+       {% block content %} ...page... {% endblock %}
+
+   Template variables (added by render() in web/templating.py):
+     app_name     the app's name, shown in the top bar and the browser tab
+     message / error   optional flash messages #}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  {# htmx: lets parts of a page update themselves without a full reload.
+     Vendored (a local copy), so the app works with no internet access. #}
+  <script src="/static/htmx.min.js" defer></script>
+  {# app.js: small conveniences (the Copy button). The page works without it. #}
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">{{ app_name }}</a>
+    <nav>{% block nav %}{% endblock %}</nav>
+  </header>
+
+  <main>
+    {% if message %}<div class="flash ok">{{ message }}</div>{% endif %}
+    {% if error %}<div class="flash bad">{{ error }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

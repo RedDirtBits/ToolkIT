@@ -1,0 +1,153 @@
+/* style.css — the shared dark theme, from my UI starter kit.
+   Colors are defined once as variables (--name) and reused everywhere, so
+   the whole palette can be adjusted in this one block. Copy this file into a
+   new app's static/ folder and add app-specific rules at the END, under a
+   clearly marked section, so the shared part stays easy to update. */
+:root {
+  --bg: #0f172a;          /* page background (deep navy) */
+  --panel: #1e293b;       /* cards and bars */
+  --panel-2: #172033;     /* code blocks, inputs */
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;      /* links, focus */
+  --button: #2563eb;
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --bad: #ef4444;
+  --hit-line: #1f2a44;    /* background of a matching line */
+  --mark: #facc15;        /* highlighted matched text */
+  --mono: Consolas, "Cascadia Mono", "DejaVu Sans Mono", monospace;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: var(--mono); background: var(--panel-2); padding: 0 4px; border-radius: 4px; }
+h1 { font-size: 20px; margin: 4px 0 8px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+h3 { font-size: 14px; margin: 14px 0 6px; }
+main { padding: 16px 20px 40px; max-width: 1400px; margin: 0 auto; }
+.muted { color: var(--muted); }
+
+/* --- Top bar and navigation ------------------------------------------------ */
+.topbar { display: flex; align-items: center; gap: 24px; padding: 10px 20px; background: #0b1222; border-bottom: 1px solid var(--border); }
+.brand { font-weight: 700; font-size: 18px; color: var(--text); letter-spacing: .5px; }
+.topbar nav { display: flex; gap: 4px; }
+.topbar nav a { color: var(--muted); padding: 6px 12px; border-radius: 6px; }
+.topbar nav a.active, .topbar nav a:hover { color: var(--text); background: var(--panel); text-decoration: none; }
+
+/* --- Credentials bar: username/password per profile + SET / NOT SET badge -- */
+.credentials { padding: 8px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.cred-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0; }
+.cred-label { font-weight: 600; color: var(--muted); min-width: 56px; font-size: 12px; }
+.cred-more summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 4px; }
+.cred-error { color: var(--bad); }
+
+/* --- Form controls ---------------------------------------------------------- */
+input, select, button { font: inherit; }
+input[type=text], input:not([type]), input[type=password], select {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+}
+input:focus, select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+input.narrow { width: 170px; }
+button { background: var(--button); color: white; border: 0; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+button:hover { filter: brightness(1.15); }
+button.secondary { background: var(--panel-2); border: 1px solid var(--border); color: var(--text); }
+button.danger { background: var(--bad); }
+button.link { background: none; color: var(--accent); padding: 0 4px; }
+form.inline { display: inline-flex; gap: 8px; align-items: center; margin-right: 12px; }
+
+/* --- Badges and pills ------------------------------------------------------- */
+.badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; letter-spacing: .5px; }
+.badge.notset { background: #fde68a; color: #422006; }
+.badge.set { background: #bbf7d0; color: #052e16; }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); }
+.pill.success, .pill.finished { color: var(--ok); border-color: #166534; }
+.pill.partial, .pill.cancelled { color: var(--warn); border-color: #92400e; }
+.pill.failed { color: var(--bad); border-color: #991b1b; }
+.pill.running { color: var(--accent); border-color: #075985; }
+.pill.skipped, .pill.waiting { color: var(--muted); }
+
+/* --- Panels, messages, tables ---------------------------------------------- */
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; }
+.flash { padding: 8px 12px; border-radius: 8px; margin: 0 0 12px; border: 1px solid; }
+.flash.ok { border-color: #166534; background: #052e16; }
+.flash.bad { border-color: #991b1b; background: #450a0a; }
+.flash.warn { border-color: #92400e; background: #451a03; }
+.warn-text { color: var(--warn); }
+.toolbar { display: flex; align-items: center; gap: 14px; margin: 8px 0 10px; }
+.toolbar form { margin: 0; }
+table.grid { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.grid th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; background: #172033; }
+.grid th, .grid td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.grid tr:last-child td { border-bottom: 0; }
+.hostname { font-family: var(--mono); }
+td.details { font-size: 13px; }
+
+/* --- Search form and results (search box, option row, filter row) --------- */
+.search-line { display: flex; gap: 8px; }
+.search-box { flex: 1; font-size: 16px; padding: 9px 12px !important; }
+.options, .filters { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 10px; color: var(--muted); }
+.filters label, .options label { display: inline-flex; gap: 6px; align-items: center; }
+.summary { margin: 4px 0 8px; }
+.note { color: var(--accent); margin: 0 0 8px; }
+.hint { max-width: 760px; }
+details.switch > summary { cursor: pointer; display: flex; gap: 12px; align-items: center; font-size: 15px; }
+details.switch > summary .hostname { font-weight: 700; }
+.file { margin-top: 10px; }
+.file-head { display: flex; gap: 12px; align-items: center; margin-bottom: 4px; }
+.command { font-family: var(--mono); font-weight: 600; color: var(--accent); }
+
+/* --- Output blocks: monospaced text with line numbers and highlighted hits -- */
+.block { position: relative; background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 0; margin: 4px 0 8px; overflow-x: auto; font-family: var(--mono); font-size: 13px; }
+.ln { display: flex; white-space: pre; }
+.ln.hit { background: var(--hit-line); }
+.ln .num { color: #64748b; min-width: 4.5em; padding: 0 12px 0 8px; text-align: right; user-select: none; flex-shrink: 0; }
+.ln .txt { padding-right: 12px; }
+mark { background: var(--mark); color: #111827; border-radius: 2px; }  /* no padding: keeps columns aligned */
+.open-file { position: sticky; float: right; right: 8px; font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; margin-right: 8px; }
+.whole-file .ln:target, .whole-file .ln.hit { background: #3b2f0b; }
+
+/* --- Progress: summary pills + a thin progress bar ------------------------- */
+.progress-summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 6px; }
+.bar { height: 6px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+.bar-fill { height: 100%; background: var(--accent); transition: width .5s; }
+
+/* ===========================================================================
+   ToolkIT-specific rules. Everything above this line is the shared UI kit;
+   keep app changes below so the kit part can be refreshed later.
+   =========================================================================== */
+
+/* --- Tabs in the top bar: hidden radio buttons + their labels --------------
+   Each label looks like a nav link. The radio buttons themselves are hidden
+   but stay in the page, so keyboard users can still Tab to them and use the
+   arrow keys; the focus ring is drawn on the label instead. */
+.tab-radio { position: absolute; opacity: 0; pointer-events: none; }
+.topbar nav label { color: var(--muted); padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.topbar nav label:hover, .tab-radio:checked + label { color: var(--text); background: var(--panel); }
+.tab-radio:focus-visible + label { outline: 1px solid var(--accent); }
+
+/* Show only the selected tab's tool. ":has()" asks "does the body contain a
+   checked #tab-ip?". Browsers too old for :has() simply show all three
+   tools, one under the other: still usable. */
+body:has(#tab-ip:checked) .tool:not(#tool-ip),
+body:has(#tab-mac:checked) .tool:not(#tool-mac),
+body:has(#tab-convert:checked) .tool:not(#tool-convert) { display: none; }
+
+/* --- Tool forms -------------------------------------------------------------- */
+.fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin: 8px 0; }
+.fields > label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+.fields > label.check { flex-direction: row; align-items: center; font-size: 14px; padding-bottom: 6px; }
+input.count { width: 110px; }
+input.network { width: 230px; font-family: var(--mono); }
+input.oui { width: 110px; font-family: var(--mono); }
+fieldset.choices { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px 6px; margin: 0; }
+fieldset.choices legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
+fieldset.choices label { display: inline-flex; gap: 6px; align-items: center; }
+
+/* --- Output: a monospaced text box that's easy to select and copy -------- */
+textarea.output { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font: 13px/1.45 var(--mono); resize: vertical; }
+textarea.output:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+textarea.paste { margin: 4px 0; }
