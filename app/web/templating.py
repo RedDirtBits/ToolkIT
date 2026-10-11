@@ -24,6 +24,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 TABS = [
     ("ip", "IP generator"),
     ("subnet", "Subnet calculator"),
+    ("iplist", "IP list cleanup"),
     ("mac", "MAC generator"),
     ("convert", "MAC converter"),
     ("hosts", "Hostname faker"),

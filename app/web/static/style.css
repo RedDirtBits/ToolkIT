@@ -134,6 +134,7 @@ mark { background: var(--mark); color: #111827; border-radius: 2px; }  /* no pad
    tools, one under the other: still usable. */
 body:has(#tab-ip:checked) .tool:not(#tool-ip),
 body:has(#tab-subnet:checked) .tool:not(#tool-subnet),
+body:has(#tab-iplist:checked) .tool:not(#tool-iplist),
 body:has(#tab-mac:checked) .tool:not(#tool-mac),
 body:has(#tab-convert:checked) .tool:not(#tool-convert),
 body:has(#tab-hosts:checked) .tool:not(#tool-hosts),

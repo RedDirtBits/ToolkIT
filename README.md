@@ -1,7 +1,7 @@
 # ToolkIT
 
 A small offline web app of everyday network utilities for network engineers: random IP and MAC address
-generators, a subnet calculator, a MAC address format converter, a hostname faker, and an offline MAC vendor (OUI)
+generators, a subnet calculator, an IP list cleanup tool, a MAC address format converter, a hostname faker, and an offline MAC vendor (OUI)
 lookup. Runs locally on Windows (portable, embedded Python) or
 Linux.
 
@@ -21,6 +21,10 @@ internet access. ToolkIT puts these tools in one local page that works offline.
   and the address type (private, CGNAT, documentation...), each with its own Copy button. Optionally
   split the network into smaller subnets by prefix (`/26`) or count (`8`). /31 and /32 handled
   correctly (RFC 3021 point-to-point, single host).
+- **IP list cleanup:** paste addresses and networks (one per line, prefix, mask or ACL wildcard) and get
+  them deduplicated in their original order, sorted numerically (.2 before .10), and summarized into the
+  fewest CIDR blocks that cover exactly the input (as prefixes, masks or ACL wildcards), plus the
+  smallest single block that covers everything. Invalid lines are listed, never dropped silently.
 - **Random MAC generator:** locally administered addresses by default (safe fakes that can't clash with a
   real vendor), fully random, or with a chosen OUI prefix.
 - **MAC format converter:** paste one or many MACs and see them in every format at once
@@ -41,6 +45,7 @@ internet access. ToolkIT puts these tools in one local page that works offline.
 |---|---|---|
 | IP generator | Random IPs by subnet or count | done |
 | Subnet calculator | Everything about a subnet; split into smaller subnets | done |
+| IP list cleanup | Deduplicate, sort and summarize addresses and networks | done |
 | MAC generator | Random MACs, locally administered by default | done |
 | MAC converter | Convert between MAC formats | done |
 | Web UI | One local page, a tab per tool | done |
@@ -73,6 +78,8 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
 - **IP generator:** type a count, a network, or both, pick the output style and click **Generate**.
 - **Subnet calculator:** type an address with a prefix, mask or wildcard and press **Enter**. To
   split it, add a new prefix (`/26`) or a number of subnets (`8`) in **Split into**.
+- **IP list cleanup:** paste addresses or networks one per line, choose how summarized blocks are
+  written (prefix, mask or ACL wildcard) and click **Clean up**.
 - **MAC generator:** type a count, choose locally administered (safe fakes), fully random or a given OUI
   prefix, pick the format and click **Generate**.
 - **MAC converter:** paste MACs one per line and click **Convert**: every format appears side by side,
@@ -87,7 +94,7 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
 
 Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
 them; **Clear** resets one tab (fields back to defaults, result removed), and reloading the page clears
-all of them. `?tab=subnet`, `?tab=mac`, `?tab=convert`, `?tab=hosts` or `?tab=oui` in the address opens another tab directly (handy as a bookmark).
+all of them. `?tab=subnet`, `?tab=iplist`, `?tab=mac`, `?tab=convert`, `?tab=hosts` or `?tab=oui` in the address opens another tab directly (handy as a bookmark).
 
 ## Folder layout
 

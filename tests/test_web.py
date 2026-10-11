@@ -39,7 +39,7 @@ def output_lines(html: str, box: str = "") -> list[str]:
 
 def test_main_page_has_every_tab(client):
     page = client.get("/").text
-    for key in ("ip", "subnet", "mac", "convert", "hosts", "oui"):
+    for key in ("ip", "subnet", "iplist", "mac", "convert", "hosts", "oui"):
         assert f'id="tab-{key}"' in page
         assert f'id="tool-{key}"' in page
 
@@ -321,7 +321,7 @@ def test_post_from_own_page_is_allowed(client):
 
 def test_every_tool_has_a_clear_button(client):
     page = client.get("/").text
-    for key in ("ip", "subnet", "mac", "convert", "hosts"):  # OUI's two forms: test_web_oui.py
+    for key in ("ip", "subnet", "iplist", "mac", "convert", "hosts"):  # OUI: test_web_oui.py
         # Each tool's form runs from its action="/<key>" to its result area.
         form = page[page.index(f'action="/{key}"') : page.index(f'id="{key}-result"')]
         assert '<button type="reset" class="secondary">Clear</button>' in form

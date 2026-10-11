@@ -13,7 +13,7 @@
    Other tabs aren't touched. Reloading the page clears all tabs.
 
    Variables:
-     tab                    which tab starts selected ("ip", "subnet", "mac", "convert", "hosts", "oui")
+     tab                    which tab starts selected ("ip", "subnet", "iplist", "mac", ...: see TABS)
      ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
                             to fill that tab's form back in and show its result #}
 
@@ -91,6 +91,40 @@
   </form>
   <div id="subnet-result" class="result">
     {% if subnet_result %}{% with result = subnet_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{# ---- IP list cleanup --------------------------------------------------------- #}
+{% set f = iplist_form or {} %}
+<section class="tool" id="tool-iplist">
+  <form class="panel tool-form" method="post" action="/iplist"
+        hx-post="/iplist" hx-target="#iplist-result" hx-swap="innerHTML">
+    <h2>Clean up an IP list</h2>
+    {# Newline after ">" on purpose (see _result.html). #}
+    <textarea name="ips" class="output paste" rows="8" spellcheck="false"
+              placeholder="Paste addresses or networks, one per line:&#10;192.168.4.10&#10;192.168.4.2&#10;192.168.5.0/24&#10;192.168.6.0 0.0.1.255">
+{{ f.ips or '' }}</textarea>
+    <div class="fields">
+      <label>Summarized blocks as
+        <select name="style">
+          {% for value, text in [("prefix", "192.168.4.0/22"), ("mask", "192.168.4.0 255.255.252.0"),
+                                 ("wildcard", "192.168.4.0 0.0.3.255 (ACL)")] %}
+            <option value="{{ value }}" {{ 'selected' if f.style == value }}>{{ text }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Clean up</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+    <p class="hint muted">
+      One address or network per line: <code>192.168.4.17</code>, <code>192.168.4.0/24</code>, with
+      a mask or an ACL wildcard. An address with a prefix (<code>192.168.4.17/24</code>) counts as
+      that address. <b>Summarized</b> is the fewest blocks covering exactly what you pasted, nothing
+      more (for ACLs and prefix lists). Sorting is numeric (.2 before .10). Invalid lines are listed.
+    </p>
+  </form>
+  <div id="iplist-result" class="result">
+    {% if iplist_result %}{% with result = iplist_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
 

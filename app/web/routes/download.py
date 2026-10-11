@@ -28,6 +28,9 @@ FILE_NAMES = {
     "oui-vendors": "mac-vendors.txt",
     "oui-prefixes": "vendor-prefixes.txt",
     "subnets": "subnets.txt",
+    "iplist-summary": "ip-summary.txt",
+    "iplist-sorted": "ip-sorted.txt",
+    "iplist-original": "ip-unique.txt",
 }
 
 # Results whose blank lines matter: the hostname faker's and the OUI lookup's
