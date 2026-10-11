@@ -85,3 +85,17 @@ def test_input_is_escaped(client):
 def test_download_names(client, kind, name):
     response = client.post("/download", data={"kind": kind, "content": "192.0.2.1"})
     assert f'filename="{name}"' in response.headers["content-disposition"]
+
+
+def test_scattered_single_addresses_get_an_explanation(client):
+    # Every other address in a /28: 8 singles that can't merge.
+    paste = "\n".join(f"192.0.2.{n}" for n in range(0, 16, 2))
+    response = client.post("/iplist", data={"ips": paste}, headers=HTMX)
+    assert "mostly single addresses" in response.text
+    assert len(box(response.text, "iplist-summary")) == 8
+
+
+def test_range_shaped_lists_get_no_explanation(client):
+    paste = "192.168.4.0/24\n192.168.5.0/24\n192.168.8.0/23\n192.0.2.7"
+    response = client.post("/iplist", data={"ips": paste}, headers=HTMX)
+    assert "mostly single addresses" not in response.text
