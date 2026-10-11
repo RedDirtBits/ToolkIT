@@ -35,11 +35,15 @@ class OutputBlock:
     download  key into routes/download.py's FILE_NAMES; also makes the box's id unique
     lines     the output, one item per line
     title     heading over the box ("Colon"), or "" for none
+    wrap_at_commas  show the text as page text that wraps only after commas (the
+              VLAN list's one long compressed line), instead of a text box that
+              would wrap mid-number; Copy and Download still use the exact text
     """
 
     download: str
     lines: list[str]
     title: str = ""
+    wrap_at_commas: bool = False
 
 
 @dataclass

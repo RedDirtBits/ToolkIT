@@ -14,10 +14,28 @@ from pathlib import Path
 
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup, escape
 
 from app import settings
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
+
+
+def wrap_after_commas(text: str) -> Markup:
+    """HTML for a long comma-separated line that may wrap only BETWEEN items.
+
+    Each item goes in a <span class="nowrap"> (never broken inside, so "57-59"
+    stays whole), with <wbr> ("a line may break here") after each comma.
+    Every item is escaped first, so the only HTML in the result is our own;
+    Markup() then tells Jinja2 not to escape it again.
+    Used by the VLAN list's compressed result (see _result.html).
+    """
+    items = [f'<span class="nowrap">{escape(item)}</span>' for item in text.split(",")]
+    return Markup(",<wbr>".join(items))
+
+
+# Make it usable in templates as {{ text | wrap_after_commas }}.
+templates.env.filters["wrap_after_commas"] = wrap_after_commas
 
 # The tabs on the main page: (key, label). The key is used in element ids
 # (tab-ip, tool-ip), form posts (/ip) and the ?tab= address.
@@ -25,6 +43,7 @@ TABS = [
     ("ip", "IP generator"),
     ("subnet", "Subnet calculator"),
     ("iplist", "IP list cleanup"),
+    ("vlan", "VLAN list"),
     ("mac", "MAC generator"),
     ("convert", "MAC converter"),
     ("hosts", "Hostname faker"),

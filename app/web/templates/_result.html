@@ -57,8 +57,14 @@
           {# The newline straight after ">" is on purpose: browsers drop one
              newline at the very start of a textarea, so without it a result
              starting with a blank line (hostname faker) would lose that line. #}
+          {% if block.wrap_at_commas %}
+            {# Shown as page text that wraps only between items, never inside one
+               (wrap_after_commas in templating.py). The hidden textarea below keeps
+               the exact text for Copy and Download. #}
+            <div class="output wrapped-view">{{ block.lines | join('\n') | wrap_after_commas }}</div>
+          {% endif %}
           <textarea name="content" id="{{ box_id }}" class="output" readonly spellcheck="false"
-                    rows="{{ [block.lines | length, 20] | min }}">
+                    rows="{{ [block.lines | length, 20] | min }}" {{ 'hidden' if block.wrap_at_commas }}>
 {{ block.lines | join('\n') }}</textarea>
         </form>
       {% endfor %}

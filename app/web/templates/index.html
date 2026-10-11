@@ -130,6 +130,33 @@
   </div>
 </section>
 
+{# ---- VLAN list ------------------------------------------------------------------ #}
+{% set f = vlan_form or {} %}
+<section class="tool" id="tool-vlan">
+  <form class="panel tool-form" method="post" action="/vlan"
+        hx-post="/vlan" hx-target="#vlan-result" hx-swap="innerHTML">
+    <h2>Expand or compress a VLAN list</h2>
+    {# Newline after ">" on purpose (see _result.html). #}
+    <textarea name="vlans" class="output paste" rows="6" spellcheck="false"
+              placeholder="Paste VLANs in any form:&#10;10,20-23,100&#10;or space-separated: 10 20 21 22 23 100&#10;or one per line">
+{{ f.vlans or '' }}</textarea>
+    <div class="fields">
+      <button type="submit">Expand / compress</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+    <p class="hint muted">
+      VLAN numbers and ranges (<code>20-23</code>), separated by commas, spaces or new lines, in any
+      order. Gives both forms at once: compressed (<code>10,20-23,100</code>) and one per line,
+      sorted, with duplicates and overlaps merged. Valid VLANs are 1 to 4094. Anything else (a word,
+      a port like <code>1/1/1</code>) is listed as skipped: from a <code>show</code> command, copy just
+      the VLAN numbers.
+    </p>
+  </form>
+  <div id="vlan-result" class="result">
+    {% if vlan_result %}{% with result = vlan_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
 {# ---- MAC generator --------------------------------------------------------- #}
 {% set f = mac_form or {} %}
 <section class="tool" id="tool-mac">

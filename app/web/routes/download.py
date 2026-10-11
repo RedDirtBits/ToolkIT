@@ -31,6 +31,8 @@ FILE_NAMES = {
     "iplist-summary": "ip-summary.txt",
     "iplist-sorted": "ip-sorted.txt",
     "iplist-original": "ip-unique.txt",
+    "vlan-compressed": "vlans-compressed.txt",
+    "vlan-expanded": "vlans.txt",
 }
 
 # Results whose blank lines matter: the hostname faker's and the OUI lookup's
