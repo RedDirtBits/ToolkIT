@@ -140,8 +140,9 @@ def test_count_with_starting_address_rounds_down_to_boundary():
     assert_valid(result, 300)
 
 
-def test_typed_10_network_is_used_as_given():
-    # Only *random* networks avoid 10/8; an explicit choice is respected.
+def test_typed_network_outside_random_blocks_is_used_as_given():
+    # Random networks only come from 172.16/12 and 192.168/16, but a network the user types is used
+    # exactly as given. (A documentation range: example addresses never come from 10/8.)
     result = generate_ips(count=5, target=Net("198.51.100.0/24"), rng=seeded())
     assert result.network == Net("198.51.100.0/24")
 
