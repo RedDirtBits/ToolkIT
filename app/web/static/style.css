@@ -161,7 +161,7 @@ input.vendor { width: 260px; }
 /* "table.grid.details-table" (not just ".details-table") so it outranks the kit's
    "table.grid { width: 100% }": keeps each Copy button close to its value. */
 table.grid.details-table { width: auto; min-width: min(560px, 100%); margin: 8px 0 12px; }
-.details-table th { width: 11em; }
+.details-table th { width: 11em; white-space: nowrap; }
 .detail-value { font-family: var(--mono); }
 /* No percentage width here: in an auto-width table, a "%" column makes the
    browser stretch the whole table to full width. */
