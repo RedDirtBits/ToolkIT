@@ -141,6 +141,23 @@ To see the one network a set of addresses sits in, use **All fit in (one block)*
 includes the unused addresses, and the **Extra addresses** count shows how many. The page shows a
 short note when your list is mostly single addresses.
 
+## Sharing with colleagues (release build)
+
+To give ToolkIT to colleagues who don't use Python, build a zip they can just extract and run.
+On Windows, with the portable `python` folder set up, double-click **`build_release.bat`**
+(or run `python\python.exe tools\build_release.py`). The zip appears in `build/`.
+
+- **What's in it:** one `ToolkIT/` folder with the app, the embedded Python (without the test
+  packages), `run.bat` and `GETTING-STARTED.html`, a step-by-step guide for colleagues.
+- **What's never in it:** git history, tests, docs, scratch files, CSV files, and `data/` (each
+  colleague downloads the IEEE vendor list with the OUI tab's **Update** button).
+- **Checks:** only an allowlist of paths goes in; the build refuses if anything forbidden would
+  ship or anything required is missing, and a smoke test starts the bundled Python from the staged
+  copy and builds the app before zipping (Windows only).
+- `python tools/build_release.py --list` shows exactly what would ship, without building.
+
+Share the zip from `build/`, never a copy of your working folder.
+
 ## Security and privacy
 
 - Listens on `127.0.0.1` only (your own machine); checks the `Host` header, and `Origin`/`Referer` on
@@ -157,7 +174,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-About 400 tests, using fake data only (documentation IP ranges, invented hostnames, small invented
+About 400 tests (416 on Linux; 404 on Windows, where the release-build tests are skipped), using fake data only (documentation IP ranges, invented hostnames, small invented
 IEEE registry files); none of them touch the network.
 
 ## Project layout
@@ -169,7 +186,10 @@ ToolkIT/
 │   └── web/      # FastAPI routes, Jinja2 templates, CSS and a little JavaScript (htmx)
 ├── tests/        # pytest tests and fake fixture data
 ├── screenshots/  # README images (fake data)
-└── run.bat       # Windows launcher for the portable setup
+├── tools/        # build_release.py: makes the colleague zip
+├── run.bat       # Windows launcher for the portable setup
+├── build_release.bat      # double-click to build the colleague zip (Windows)
+└── GETTING-STARTED.html   # the guide shipped in the zip
 ```
 
 ## Development notes

@@ -1,0 +1,182 @@
+<!doctype html>
+<!-- GETTING-STARTED.html — the guide shipped in ToolkIT's release zip, for colleagues.
+     Self-contained (no external files) so it opens from anywhere with a double-click, and styled
+     like the app. Written for colleagues who may not know Python: plain words, exact clicks.
+     Every button, tab and field name here was checked against the app's templates; update this
+     file whenever something a colleague needs to know changes. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ToolkIT · Getting started</title>
+<style>
+  :root { --bg:#0f172a; --panel:#1e293b; --panel-2:#172033; --border:#334155; --text:#e2e8f0;
+          --muted:#94a3b8; --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+          --mono: Consolas, "Cascadia Mono", "DejaVu Sans Mono", monospace; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.6 "Segoe UI", system-ui, sans-serif; }
+  header { background:#0b1222; border-bottom:1px solid var(--border); padding:14px 24px; }
+  header b { font-size:20px; letter-spacing:.5px; }
+  header span { color:var(--muted); margin-left:12px; }
+  main { max-width:900px; margin:0 auto; padding:16px 24px 60px; }
+  h1 { font-size:24px; margin:18px 0 6px; }
+  h2 { font-size:18px; margin:30px 0 8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+  h3 { font-size:15px; margin:18px 0 4px; }
+  a { color:var(--accent); }
+  code { font-family:var(--mono); background:var(--panel-2); padding:1px 5px; border-radius:4px; font-size:13px; }
+  pre { font-family:var(--mono); background:var(--panel-2); border:1px solid var(--border); border-radius:6px;
+        padding:10px 12px; overflow-x:auto; font-size:13px; }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:12px 18px; margin:12px 0; }
+  .lead { font-size:16px; color:var(--text); }
+  .muted { color:var(--muted); }
+  ol li, ul li { margin:4px 0; }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--border); margin:8px 0; }
+  th { text-align:left; color:var(--muted); font-weight:600; font-size:13px; background:var(--panel-2); }
+  th, td { padding:6px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .note { border-left:3px solid var(--accent); padding:6px 12px; background:var(--panel); margin:12px 0; }
+  .warn { border-left:3px solid var(--warn); padding:6px 12px; background:var(--panel); margin:12px 0; }
+</style>
+</head>
+<body>
+<header><b>ToolkIT</b><span>Everyday network utilities, offline · Getting started</span></header>
+<main>
+
+<h1>What is ToolkIT?</h1>
+<p class="lead">One page in your browser with the small network tools we reach for every day: a subnet
+calculator, IP list cleanup and summarizing, VLAN lists, MAC vendor lookup, and generators for fake
+IPs, MACs and hostnames. It runs on your own laptop and works without internet.</p>
+
+<div class="panel">
+<b>The problem it solves.</b> Jobs like "what's the wildcard for a /22?", "which VLAN IDs are still free
+on this core?", "summarize these networks for an ACL" or "who made this MAC?" usually mean a different
+website each time. That's slow, it means pasting work data into someone else's site, and it doesn't work
+at sites with poor internet. ToolkIT does all of them in one place, offline, in seconds.
+</div>
+
+<h3>The tools (one tab each, along the top)</h3>
+<table>
+  <tr><th>Tab</th><th>What it's for</th></tr>
+  <tr><td><b>IP generator</b></td><td>Random, never-repeating IP addresses: from a subnet you give, or a count (it picks a subnet the right size).</td></tr>
+  <tr><td><b>Subnet calculator</b></td><td>Everything about a subnet: network, mask, wildcard, broadcast, usable range and count. Can split a network into smaller subnets.</td></tr>
+  <tr><td><b>IP list cleanup</b></td><td>Deduplicate and sort a list of addresses/networks, and summarize it into the fewest blocks for an ACL or prefix list.</td></tr>
+  <tr><td><b>VLAN list</b></td><td>Turn <code>10,20-23,100</code> into one VLAN per line and back, and show the <b>free</b> VLAN IDs in between.</td></tr>
+  <tr><td><b>MAC generator</b></td><td>Fake MAC addresses that can never clash with a real vendor.</td></tr>
+  <tr><td><b>MAC converter</b></td><td>See MACs in every format at once: <code>aa:bb:cc:dd:ee:ff</code>, <code>aa-bb-cc-dd-ee-ff</code>, <code>aabb.ccdd.eeff</code>.</td></tr>
+  <tr><td><b>Hostname faker</b></td><td>Replace a column of real hostnames with realistic fakes, e.g. before sharing a spreadsheet.</td></tr>
+  <tr><td><b>OUI lookup</b></td><td>Who made this MAC? And the reverse: all the MAC prefixes a vendor owns.</td></tr>
+</table>
+<p class="muted">ToolkIT never connects to a switch or any other device, and nothing you paste into it leaves
+your laptop.</p>
+
+<h2>Getting started</h2>
+<ol>
+  <li><b>Extract the zip</b> to a folder you own, e.g. <code>Documents\ToolkIT</code>. Right-click the zip
+      → <b>Extract All…</b>. Don't run it from inside the zip.</li>
+  <li>There's nothing to set up: no install, no settings, no accounts.</li>
+  <li><b>Double-click <code>run.bat</code>.</b> A black console window opens, and then your browser opens
+      at <code>http://127.0.0.1:8780</code>. Keep the console window open while you use it;
+      <b>closing it stops the app</b>.</li>
+  <li><b>Once, for the OUI lookup:</b> open the <b>OUI lookup</b> tab and click <b>Update from IEEE</b> at the
+      bottom. It downloads the official MAC vendor list (about 5 MB, a few seconds). After that, lookups
+      work offline. Click it again now and then for a fresher list.</li>
+</ol>
+
+<div class="note">The first time you run it, Windows may show <b>"Windows protected your PC"</b> because
+<code>run.bat</code> came from a zip. Click <b>More info → Run anyway</b>. If your laptop doesn't allow
+that, right-click the zip → <b>Properties</b> → tick <b>Unblock</b> → OK, then extract it again.</div>
+
+<div class="note">Tip: bookmark <code>http://127.0.0.1:8780</code>. Adding <code>?tab=subnet</code>,
+<code>?tab=vlan</code>, <code>?tab=oui</code> (and so on) to the address opens that tab directly. The bookmark
+only works while <code>run.bat</code>'s window is open.</div>
+
+<h2>Using it</h2>
+<p>Every tab works the same way: type or paste into the box, click the blue button, and the result appears
+underneath. Every result has <b>Copy</b> (to the clipboard) and <b>Download .txt</b> buttons. <b>Clear</b>
+empties just that tab. Tabs keep their results while you switch between them.</p>
+
+<table>
+  <tr><th>To…</th><th>Go to</th><th>Do this</th></tr>
+  <tr><td>Get a subnet's mask, wildcard, range…</td><td><b>Subnet calculator</b></td>
+      <td>Type e.g. <code>192.168.4.17/22</code>, <code>192.168.4.17 255.255.252.0</code> or an ACL wildcard
+      <code>192.168.4.0 0.0.3.255</code>, then press <b>Enter</b> or click <b>Calculate</b>. Any address in the
+      subnet works. Each value has its own Copy button.</td></tr>
+  <tr><td>Split a network</td><td><b>Subnet calculator</b></td>
+      <td>Also fill in <b>Split into (optional)</b>: a new prefix such as <code>/26</code>, or a number of
+      subnets such as <code>8</code>.</td></tr>
+  <tr><td>Summarize networks for an ACL or prefix list</td><td><b>IP list cleanup</b></td>
+      <td>Paste one address or network per line, choose <b>Summarized blocks as</b> (prefix, mask, or ACL
+      wildcard), click <b>Clean up</b>. You also get the list sorted and deduplicated. See the note below.</td></tr>
+  <tr><td>Expand a VLAN list, or find free VLAN IDs</td><td><b>VLAN list</b></td>
+      <td>Paste VLANs in any form (<code>10,20-23,100</code>, space-separated, one per line), click
+      <b>Expand / compress</b>. The <b>Free VLANs</b> box lists the unused IDs between your lowest and
+      highest. From a <code>show</code> command, copy just the VLAN numbers: words and port numbers are
+      skipped and listed.</td></tr>
+  <tr><td>Find who made a MAC</td><td><b>OUI lookup</b></td>
+      <td>Type the MAC in any format (or just the first 6 digits) and press <b>Enter</b>. Paste several, one
+      per line, for a table and a column of vendors to copy.</td></tr>
+  <tr><td>Find all of a vendor's MAC prefixes</td><td><b>OUI lookup</b></td>
+      <td>Under <b>Find a vendor's prefixes</b>, type part of the name (e.g. <code>extreme</code>) and click
+      <b>Find</b>.</td></tr>
+  <tr><td>Fake hostnames for a spreadsheet</td><td><b>Hostname faker</b></td>
+      <td>Paste the hostname column, put the parts to keep in <b>Keep these parts</b> (e.g.
+      <code>cor, dst, acc</code>), click <b>Fake</b>, then paste the result back over the real column.
+      Blank rows stay blank, so the rows line up.</td></tr>
+  <tr><td>Fake IPs or MACs</td><td><b>IP generator</b> / <b>MAC generator</b></td>
+      <td>Type a count (and for IPs, optionally a network) and click <b>Generate</b>.</td></tr>
+  <tr><td>Convert MAC formats</td><td><b>MAC converter</b></td>
+      <td>Paste MACs one per line and click <b>Convert</b>: every format appears side by side.</td></tr>
+</table>
+
+<h3>Why the IP list summary can look odd</h3>
+<p>The <b>Summarized for ACLs / prefix lists</b> box gives the fewest blocks that cover <b>exactly</b> your
+addresses, never one address more, which is what an ACL or prefix list needs. Blocks have to be a power of two
+in size (1, 2, 4, 8, 16… addresses) and start at a multiple of their size, so the gaps between scattered
+addresses can't be bridged:</p>
+<pre>192.0.2.8 – .15   (8 addresses, starts at a multiple of 8)  →  192.0.2.8/29     one block
+192.0.2.5 – .12   (8 addresses, starts at .5)               →  .5/32  .6/31  .8/30  .12/32</pre>
+<p>So a list of individual devices (for example, the management IPs in use in one subnet) comes out as many
+small <code>/32</code>, <code>/30</code>, <code>/29</code> blocks. That's correct for an ACL that must allow
+only those hosts. To see the one network they all sit in, look at <b>All fit in (one block)</b> instead,
+which also says how many unused addresses it includes.</p>
+
+<h2>Keeping things safe</h2>
+<ul>
+  <li>ToolkIT only listens on your own laptop (<code>127.0.0.1</code>); nobody else on the network can reach it.</li>
+  <li>Nothing you paste is saved or sent anywhere. The only thing that uses the internet is the
+      <b>Update from IEEE</b> button, which downloads IEEE's public vendor list.</li>
+  <li>The <b>Hostname faker</b> forgets everything after each paste. The same real name only gets the same
+      fake within <b>one</b> paste, so fake everything that belongs together in one go.</li>
+  <li>If you pass ToolkIT on, share the <b>original zip</b>.</li>
+</ul>
+
+<h2>Updating to a new version</h2>
+<ol>
+  <li>Close the app (close its console window).</li>
+  <li>Extract the new zip to a new folder.</li>
+  <li>Optional: copy the <code>data</code> folder from the old folder into the new one to keep your vendor
+      list. Otherwise just click <b>Update from IEEE</b> again in the new version.</li>
+  <li>Run the new <code>run.bat</code>. Once it works, delete the old folder.</li>
+</ol>
+
+<h2>If something goes wrong</h2>
+<table>
+  <tr><th>What you see</th><th>What to do</th></tr>
+  <tr><td>The console window flashes and closes, or shows an error</td><td>Make sure you extracted the whole zip and are running <code>run.bat</code> from the extracted folder. Send a screenshot of the console to whoever gave you the app.</td></tr>
+  <tr><td>The browser doesn't open</td><td>Open <code>http://127.0.0.1:8780</code> yourself while the console window is open.</td></tr>
+  <tr><td>An error in the console saying <i>"only one usage of each socket address"</i> (error 10048)</td><td>ToolkIT is already running in another console window. Use that one, or close it first.</td></tr>
+  <tr><td>The page says "This site can't be reached"</td><td>The console window was closed, which stops the app. Double-click <code>run.bat</code> again.</td></tr>
+  <tr><td><b>Update from IEEE</b> says it couldn't reach IEEE</td><td>Your network may be blocking it. In your browser, download these three files:
+      <code>https://standards-oui.ieee.org/oui/oui.csv</code>, <code>https://standards-oui.ieee.org/oui28/mam.csv</code>,
+      <code>https://standards-oui.ieee.org/oui36/oui36.csv</code>. Then on the <b>OUI lookup</b> tab, choose each
+      one with <b>Import file</b>.</td></tr>
+  <tr><td>OUI lookup says there's no vendor list yet</td><td>Click <b>Update from IEEE</b> at the bottom of the <b>OUI lookup</b> tab (once).</td></tr>
+  <tr><td>A MAC says "Locally administered"</td><td>That's not an error: the address was made up by software (phones and laptops use random "private" MACs), so no vendor owns it.</td></tr>
+  <tr><td>Lines are listed as "skipped"</td><td>Those lines weren't addresses, networks or VLANs (e.g. a heading or a port number). Everything else is still processed.</td></tr>
+  <tr><td>The Copy button says <b>Press Ctrl+C</b></td><td>Your browser blocked the clipboard, so ToolkIT has selected the text for you: press <b>Ctrl+C</b> to copy it.</td></tr>
+</table>
+
+<p class="muted" style="margin-top:30px">ToolkIT runs entirely on your laptop with its own built-in Python;
+nothing needs installing.</p>
+</main>
+</body>
+</html>
