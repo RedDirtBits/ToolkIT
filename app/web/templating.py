@@ -25,6 +25,7 @@ TABS = [
     ("ip", "IP generator"),
     ("mac", "MAC generator"),
     ("convert", "MAC converter"),
+    ("hosts", "Hostname faker"),
 ]
 TAB_KEYS = {key for key, _ in TABS}
 

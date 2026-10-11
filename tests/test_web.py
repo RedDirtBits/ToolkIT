@@ -1,4 +1,4 @@
-"""Tests for the web layer: pages, the three tool forms, downloads and the local-only checks.
+"""Tests for the web layer: pages, the four tool forms, downloads and the local-only checks.
 
 FastAPI's TestClient calls the app directly in memory, with no server or browser. It sends
 "Host: testserver", so the app is built with that as its allowed host name.
@@ -26,15 +26,17 @@ def output_lines(html: str, box: str = "") -> list[str]:
     """
     start = html.index(f'id="{box}"') if box else html.index('name="content"')
     body = html[html.index(">", start) + 1 : html.index("</textarea>", start)]
-    return body.splitlines()
+    # Read it as a browser does: one newline right after the opening tag is dropped.
+    body = body.removeprefix("\n")
+    return body.split("\n")
 
 
 # --- main page -----------------------------------------------------------------------------------
 
 
-def test_main_page_has_three_tabs(client):
+def test_main_page_has_four_tabs(client):
     page = client.get("/").text
-    for key in ("ip", "mac", "convert"):
+    for key in ("ip", "mac", "convert", "hosts"):
         assert f'id="tab-{key}"' in page
         assert f'id="tool-{key}"' in page
 
@@ -207,7 +209,7 @@ def test_convert_caps_the_warning_list(client):
     pasted = "\n".join(["junk"] * 30)
     response = client.post("/convert", data={"macs": pasted}, headers=HTMX)
     assert response.text.count("skipped, not a MAC") == 20
-    assert "and 10 more skipped lines" in response.text
+    assert "... and 10 more." in response.text
 
 
 def test_convert_empty_paste_is_refused(client):
@@ -219,6 +221,56 @@ def test_convert_too_many_lines_is_refused(client):
     pasted = "\n".join(["02:1a:2b:3c:4d:5e"] * 65_535)
     response = client.post("/convert", data={"macs": pasted}, headers=HTMX)
     assert "more than 65,534 lines" in response.text
+
+
+# --- Hostname faker ------------------------------------------------------------------------------
+
+
+def test_hosts_one_fake_per_line_blank_lines_kept(client):
+    pasted = "\nexsite-lab-bld01a-cor-01\n\nexsite-lab-bld01a-dst-01\n"
+    response = client.post("/hosts", data={"hostnames": pasted, "keep": "cor, dst"}, headers=HTMX)
+    lines = output_lines(response.text)
+    # A leading blank row survives (the textarea newline fix), and rows line up with the paste.
+    assert lines == ["", lines[1], "", lines[3]]
+    assert "-cor-" in lines[1] and "-dst-" in lines[3]
+    # Same site, building and number -> same fake parts; only the kept role differs.
+    assert lines[1].replace("-cor-", "-") == lines[3].replace("-dst-", "-")
+    assert "2 hostnames faked (2 different), keeping cor, dst" in response.text
+
+
+def test_hosts_case_upper(client):
+    response = client.post("/hosts", data={"hostnames": "lab-sw-01", "case": "upper"}, headers=HTMX)
+    assert output_lines(response.text)[0].isupper()
+
+
+def test_hosts_unchanged_line_is_warned(client):
+    response = client.post("/hosts", data={"hostnames": "lab-cor-01\ncor", "keep": "cor"}, headers=HTMX)
+    assert "Line 2 not faked" in response.text
+
+
+def test_hosts_empty_paste_is_refused(client):
+    response = client.post("/hosts", data={"hostnames": " \n"}, headers=HTMX)
+    assert "Paste at least one hostname" in response.text
+
+
+def test_hosts_without_javascript_returns_full_page(client):
+    response = client.post("/hosts", data={"hostnames": "lab-sw-01", "keep": "sw", "case": "lower"})
+    page = response.text
+    assert 'id="tab-hosts" class="tab-radio" checked' in page
+    assert 'value="sw"' in page  # keep list filled back in
+    assert '<option value="lower" selected' in page
+
+
+def test_hosts_input_is_escaped(client):
+    response = client.post("/hosts", data={"hostnames": "<b>x</b>", "keep": "b"}, headers=HTMX)
+    assert "<b>" not in response.text
+
+
+def test_hosts_download_keeps_blank_lines(client):
+    data = {"kind": "hosts", "content": "aa-01\n\nbb-02"}
+    response = client.post("/download", data=data)
+    assert response.content == b"aa-01\r\n\r\nbb-02\r\n"
+    assert 'filename="fake-hostnames.txt"' in response.headers["content-disposition"]
 
 
 # --- download ------------------------------------------------------------------------------------
@@ -266,7 +318,7 @@ def test_post_from_own_page_is_allowed(client):
 
 def test_every_tool_has_a_clear_button(client):
     page = client.get("/").text
-    for key in ("ip", "mac", "convert"):
+    for key in ("ip", "mac", "convert", "hosts"):
         # Each tool's form runs from its action="/<key>" to its result area.
         form = page[page.index(f'action="/{key}"') : page.index(f'id="{key}-result"')]
         assert '<button type="reset" class="secondary">Clear</button>' in form

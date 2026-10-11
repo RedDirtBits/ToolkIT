@@ -130,11 +130,12 @@ mark { background: var(--mark); color: #111827; border-radius: 2px; }  /* no pad
 .tab-radio:focus-visible + label { outline: 1px solid var(--accent); }
 
 /* Show only the selected tab's tool. ":has()" asks "does the body contain a
-   checked #tab-ip?". Browsers too old for :has() simply show all three
+   checked #tab-ip?". Browsers too old for :has() simply show all the
    tools, one under the other: still usable. */
 body:has(#tab-ip:checked) .tool:not(#tool-ip),
 body:has(#tab-mac:checked) .tool:not(#tool-mac),
-body:has(#tab-convert:checked) .tool:not(#tool-convert) { display: none; }
+body:has(#tab-convert:checked) .tool:not(#tool-convert),
+body:has(#tab-hosts:checked) .tool:not(#tool-hosts) { display: none; }
 
 /* --- Tool forms -------------------------------------------------------------- */
 .fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin: 8px 0; }
@@ -143,6 +144,7 @@ body:has(#tab-convert:checked) .tool:not(#tool-convert) { display: none; }
 input.count { width: 110px; }
 input.network { width: 230px; font-family: var(--mono); }
 input.oui { width: 110px; font-family: var(--mono); }
+input.keep { width: 280px; font-family: var(--mono); }
 fieldset.choices { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px 6px; margin: 0; }
 fieldset.choices legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
 fieldset.choices label { display: inline-flex; gap: 6px; align-items: center; }

@@ -21,6 +21,10 @@ from fastapi import Request
 
 from app.web.templating import render
 
+# Show at most this many warnings; a paste of mostly junk would otherwise
+# bury the result under hundreds of them.
+MAX_WARNINGS_SHOWN = 20
+
 
 @dataclass
 class OutputBlock:
@@ -42,7 +46,7 @@ class OutputBlock:
 class ToolResult:
     """What one tool produced, ready for the _result.html template.
 
-    kind      the tool's tab key ("ip", "mac", "convert")
+    kind      the tool's tab key ("ip", "mac", "convert", "hosts")
     error     a message for the user if the request was refused (then blocks is empty)
     summary   one line describing the result, e.g. "300 addresses from 172.22.14.0/23"
     blocks    the output boxes
@@ -54,6 +58,14 @@ class ToolResult:
     summary: str = ""
     blocks: list[OutputBlock] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+
+
+def cap_warnings(warnings: list[str]) -> list[str]:
+    """Keep the first MAX_WARNINGS_SHOWN warnings and say how many were left out."""
+    if len(warnings) <= MAX_WARNINGS_SHOWN:
+        return warnings
+    hidden = len(warnings) - MAX_WARNINGS_SHOWN
+    return warnings[:MAX_WARNINGS_SHOWN] + [f"... and {hidden:,} more."]
 
 
 def tool_response(request: Request, result: ToolResult, form: dict[str, str]):

@@ -1,5 +1,5 @@
 """
-pages.py — the main page: three tabs, one per tool.
+pages.py — the main page: four tabs, one per tool.
 
 GET /           opens on the IP generator tab
 GET /?tab=mac   opens on another tab (handy as a bookmark)

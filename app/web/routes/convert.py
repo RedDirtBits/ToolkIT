@@ -13,13 +13,9 @@ from fastapi import APIRouter, Request
 from app import settings
 from app.tools.mac_format import convert_all_formats
 from app.web.forms import is_checked, read_large_form
-from app.web.responses import OutputBlock, ToolResult, tool_response
+from app.web.responses import OutputBlock, ToolResult, cap_warnings, tool_response
 
 router = APIRouter()
-
-# Show at most this many skipped lines; a paste of mostly junk would
-# otherwise bury the result under hundreds of warnings.
-MAX_WARNINGS_SHOWN = 20
 
 # The heading over each format's box.
 FORMAT_TITLES = {
@@ -47,10 +43,9 @@ async def convert(request: Request):
         return refuse(f"That's more than {settings.MAX_CONVERT_LINES:,} lines; convert it in parts.")
     converted = convert_all_formats(macs, is_checked(upper))
 
-    warnings = [f"Line {number} skipped, not a MAC: {text}" for number, text in converted.errors]
-    if len(warnings) > MAX_WARNINGS_SHOWN:
-        hidden = len(warnings) - MAX_WARNINGS_SHOWN
-        warnings = warnings[:MAX_WARNINGS_SHOWN] + [f"... and {hidden:,} more skipped lines."]
+    warnings = cap_warnings(
+        [f"Line {number} skipped, not a MAC: {text}" for number, text in converted.errors]
+    )
 
     # Every format holds the same MACs, so any one of them gives the count.
     count = len(converted.by_format["colon"])

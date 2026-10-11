@@ -26,8 +26,12 @@
             <button type="button" class="secondary" data-copy="{{ box_id }}">Copy</button>
             <button type="submit" class="secondary">Download .txt</button>
           </div>
+          {# The newline straight after ">" is on purpose: browsers drop one
+             newline at the very start of a textarea, so without it a result
+             starting with a blank line (hostname faker) would lose that line. #}
           <textarea name="content" id="{{ box_id }}" class="output" readonly spellcheck="false"
-                    rows="{{ [block.lines | length, 20] | min }}">{{ block.lines | join('\n') }}</textarea>
+                    rows="{{ [block.lines | length, 20] | min }}">
+{{ block.lines | join('\n') }}</textarea>
         </form>
       {% endfor %}
     </div>

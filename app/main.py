@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app import settings
-from app.web.routes import convert, download, ip, mac, pages
+from app.web.routes import convert, download, hosts, ip, mac, pages
 from app.web.security import DEFAULT_ALLOWED_HOSTS, local_only_middleware
 
 STATIC_DIR = Path(__file__).parent / "web" / "static"
@@ -28,7 +28,7 @@ def create_app(allowed_hosts: set[str] | None = None) -> FastAPI:
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     # Each routes file is a "router": a bundle of related pages.
-    for module in (pages, ip, mac, convert, download):
+    for module in (pages, ip, mac, convert, hosts, download):
         app.include_router(module.router)
 
     return app

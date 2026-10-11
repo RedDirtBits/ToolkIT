@@ -13,7 +13,7 @@
    Other tabs aren't touched. Reloading the page clears all tabs.
 
    Variables:
-     tab                    which tab starts selected ("ip", "mac", "convert")
+     tab                    which tab starts selected ("ip", "mac", "convert", "hosts")
      ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
                             to fill that tab's form back in and show its result #}
 
@@ -123,6 +123,45 @@
   </form>
   <div id="convert-result" class="result">
     {% if convert_result %}{% with result = convert_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{# ---- Hostname faker ---------------------------------------------------------- #}
+{% set f = hosts_form or {} %}
+<section class="tool" id="tool-hosts">
+  <form class="panel tool-form" method="post" action="/hosts"
+        hx-post="/hosts" hx-target="#hosts-result" hx-swap="innerHTML">
+    <h2>Fake hostnames</h2>
+    {# Newline after ">" on purpose (see _result.html): keeps a leading blank row. #}
+    <textarea name="hostnames" class="output paste" rows="8" spellcheck="false"
+              placeholder="Paste hostnames, one per line (e.g. a spreadsheet column):&#10;exsite-lab-bld01a-cor-01&#10;exsite-lab-bld01a-dst-01&#10;hq6500a">
+{{ f.hostnames or '' }}</textarea>
+    <div class="fields">
+      <label>Keep these parts
+        <input name="keep" class="keep" placeholder="e.g. cor, dst, acc, hq"
+               value="{{ f.keep or '' }}">
+      </label>
+      <label>Case
+        <select name="case">
+          {% for value, text in [("same", "Same as input"), ("lower", "lower"), ("upper", "UPPER")] %}
+            <option value="{{ value }}" {{ 'selected' if f.case == value }}>{{ text }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Fake</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+    <p class="hint muted">
+      Each hostname is split into parts at <code>-</code> and <code>_</code> and where letters meet
+      digits (<code>hq6500a</code> → <code>hq</code> <code>6500</code> <code>a</code>). Parts on the
+      keep list stay; every other part becomes random letters or digits of the same length.
+      The same real part always gets the same fake, so devices at the same site still match up.
+      One fake per line, same order, blank lines kept: paste the result straight back over the
+      real column. Fake everything that belongs together in one go: a new paste gets new fakes.
+    </p>
+  </form>
+  <div id="hosts-result" class="result">
+    {% if hosts_result %}{% with result = hosts_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
 

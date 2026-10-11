@@ -1,7 +1,7 @@
 # ToolkIT
 
 A small offline web app of everyday network utilities for network engineers: random IP and MAC address
-generators and a MAC address format converter. Runs locally on Windows (portable, embedded Python) or
+generators, a MAC address format converter, and a hostname faker. Runs locally on Windows (portable, embedded Python) or
 Linux.
 
 ## Why
@@ -19,6 +19,10 @@ internet access. ToolkIT puts these tools in one local page that works offline.
   real vendor), fully random, or with a chosen OUI prefix.
 - **MAC format converter:** paste one or many MACs and see them in every format at once
   (`aa:bb:cc:dd:ee:ff`, `aa-bb-cc-dd-ee-ff`, `aabb.ccdd.eeff`), each with its own Copy button.
+- **Hostname faker:** paste a column of real hostnames and get a column of fakes, one per line in the
+  same order, ready to paste back over the original. Parts you choose (e.g. a device role like `cor`)
+  are kept, the rest become random letters/digits of the same shape, and the same real part always
+  gets the same fake, so the data keeps its structure without its real names.
 - Copy to clipboard or download results.
 
 ## Project status
@@ -30,7 +34,7 @@ internet access. ToolkIT puts these tools in one local page that works offline.
 | MAC converter | Convert between MAC formats | done |
 | Web UI | One local page, a tab per tool | done |
 | OUI lookup | Vendor lookup from an offline IEEE list | later (v2) |
-| Hostname generator | Random hostnames from a pattern | later (v2) |
+| Hostname faker | Fake a list of hostnames, keeping chosen parts and the structure | done |
 
 ## Quick start (Windows, portable)
 
@@ -60,10 +64,13 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
   prefix, pick the format and click **Generate**.
 - **MAC converter:** paste MACs one per line and click **Convert**: every format appears side by side,
   each with its own Copy button.
+- **Hostname faker:** paste hostnames one per line (e.g. a spreadsheet column), list the parts to keep
+  (`cor, dst, acc`), pick the case and click **Fake**. Paste the result back over the real column.
+  Fake hostnames that belong together in one paste: each new paste gets new fakes.
 
 Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
 them; **Clear** resets one tab (fields back to defaults, result removed), and reloading the page clears
-all of them. `?tab=mac` or `?tab=convert` in the address opens another tab directly (handy as a bookmark).
+all of them. `?tab=mac`, `?tab=convert` or `?tab=hosts` in the address opens another tab directly (handy as a bookmark).
 
 ## Folder layout
 
@@ -85,7 +92,8 @@ python -m pytest -q
 ## Security notes
 
 - Listens on `127.0.0.1` only; checks `Host`, and `Origin`/`Referer` on form posts.
-- Needs no credentials and stores no data. Nothing leaves the machine.
+- Needs no credentials and stores no data (the hostname faker forgets everything after each paste).
+  Nothing leaves the machine.
 
 ## Built with
 

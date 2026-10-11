@@ -24,7 +24,12 @@ FILE_NAMES = {
     "convert-colon": "mac-colon.txt",
     "convert-hyphen": "mac-hyphen.txt",
     "convert-dotted": "mac-dotted.txt",
+    "hosts": "fake-hostnames.txt",
 }
+
+# Results whose blank lines matter: the hostname faker's output lines up row
+# for row with a spreadsheet column, so an empty row must stay empty.
+KEEP_BLANK_LINES = {"hosts"}
 
 
 @router.post("/download")
@@ -32,13 +37,17 @@ async def download(request: Request):
     # A full /16 of results is about 2 MB, over Starlette's usual 1 MB limit
     # per field, so the form is read with a larger limit (see read_large_form).
     data = await read_large_form(request)
-    file_name = FILE_NAMES.get(data.get("kind", ""))
+    kind = data.get("kind", "")
+    file_name = FILE_NAMES.get(kind)
     if file_name is None:
         return PlainTextResponse("Unknown download.", status_code=400)
 
     # Windows line endings (CRLF), so the file looks right in any Windows
-    # editor; Linux editors handle them fine too. Blank lines are dropped.
-    lines = [line for line in data.get("content", "").splitlines() if line.strip()]
+    # editor; Linux editors handle them fine too. Blank lines are dropped,
+    # except for results where they mark a row (KEEP_BLANK_LINES).
+    lines = data.get("content", "").splitlines()
+    if kind not in KEEP_BLANK_LINES:
+        lines = [line for line in lines if line.strip()]
     body = "\r\n".join(lines) + "\r\n" if lines else ""
     return Response(
         content=body,
