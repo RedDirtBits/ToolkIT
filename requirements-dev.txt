@@ -1,0 +1,8 @@
+# Development only: everything the app needs, plus the test tools.
+# Install with:  pip install -r requirements-dev.txt
+# Keep tools/build_release.py's DEV_PACKAGES in step with this list, so release
+# builds leave these out of the bundled Python.
+-r requirements.txt
+
+pytest>=8.0
+httpx2>=2.0              # Used by FastAPI's test client (Starlette 1.x prefers httpx2 over httpx)

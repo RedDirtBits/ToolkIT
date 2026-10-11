@@ -1,0 +1,29 @@
+
+# Real data the app collects or loads: never commit it.
+data/
+# e.g. inventory/*.csv
+
+# Throwaway experiments (Claude's and mine). Lasting tests go in tests/.
+scratch/
+
+# Python's compiled bytecode caches.
+__pycache__/
+*.pyc
+
+# Virtual environments, if one is ever created inside the project.
+.venv/
+venv/
+
+# Release builds (tools/build_release.py): the staged folder and the zips.
+build/
+
+# pytest's own cache folder.
+.pytest_cache/
+
+# The Windows embedded Python folder: ~100 MB of downloaded files, not project code.
+python/
+
+# Secrets never belong in a repo; this is a safety net, not permission.
+.env
+*.key
+*.pem

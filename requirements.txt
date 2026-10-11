@@ -1,0 +1,9 @@
+# Packages the app needs to RUN (bundled into release builds). Install with:
+#   pip install -r requirements.txt
+# Only packages with Windows wheels (production is Windows embedded Python).
+# Typical web app:
+fastapi>=0.115           # Web framework: pages and forms
+uvicorn>=0.30            # The web server that runs FastAPI
+jinja2>=3.1              # HTML templates
+python-multipart>=0.0.9  # Lets FastAPI read form posts and file uploads
+pydantic>=2.0            # Data validation
