@@ -36,7 +36,7 @@ def test_all_three_boxes_and_counts(client):
 
 def test_covering_block_shown_with_copy(client):
     response = client.post("/iplist", data={"ips": PASTE}, headers=HTMX)
-    assert '<th scope="row">All fit in</th>' in response.text
+    assert '<th scope="row">All fit in (one block)</th>' in response.text
     assert ">192.168.4.0/23</span>" in response.text
     assert 'data-copy="iplist-detail-1"' in response.text
 

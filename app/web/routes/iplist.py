@@ -50,12 +50,12 @@ async def iplist(request: Request):
     details = []
     if result.covering is not None:
         details = [
-            ("All fit in", format_block(result.covering, style)),
+            ("All fit in (one block)", format_block(result.covering, style)),
             ("Extra addresses", f"{result.extra:,}" if result.extra else "none: an exact fit"),
         ]
 
     blocks = [
-        OutputBlock(download="iplist-summary", lines=summary_lines, title="Summarized"),
+        OutputBlock(download="iplist-summary", lines=summary_lines, title="Summarized (exact)"),
         OutputBlock(download="iplist-sorted", lines=[format_item(n) for n in result.sorted], title="Sorted, unique"),
         OutputBlock(download="iplist-original", lines=[format_item(n) for n in result.original], title="Original order, unique"),
     ]

@@ -119,8 +119,10 @@
     <p class="hint muted">
       One address or network per line: <code>192.168.4.17</code>, <code>192.168.4.0/24</code>, with
       a mask or an ACL wildcard. An address with a prefix (<code>192.168.4.17/24</code>) counts as
-      that address. <b>Summarized</b> is the fewest blocks covering exactly what you pasted, nothing
-      more (for ACLs and prefix lists). Sorting is numeric (.2 before .10). Invalid lines are listed.
+      that address. <b>Summarized (exact)</b> is the fewest blocks covering exactly what you pasted,
+      nothing more (for ACLs and prefix lists), so scattered single addresses stay as many small
+      blocks. <b>All fit in</b> is one block around everything, unused addresses included.
+      Sorting is numeric (.2 before .10). Invalid lines are listed.
     </p>
   </form>
   <div id="iplist-result" class="result">
