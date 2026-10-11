@@ -96,6 +96,33 @@ Each result has **Copy** and **Download .txt** buttons. Tabs keep their results 
 them; **Clear** resets one tab (fields back to defaults, result removed), and reloading the page clears
 all of them. `?tab=subnet`, `?tab=iplist`, `?tab=mac`, `?tab=convert`, `?tab=hosts` or `?tab=oui` in the address opens another tab directly (handy as a bookmark).
 
+### Why the IP list summary sometimes looks odd
+
+The **Summarized for ACLs / prefix lists** box answers one specific question: *what is the smallest
+set of address blocks that covers exactly these addresses, and not one address more?* That's what an
+access list (ACL) or a prefix list needs. If it allowed a block that was too big, it would let in
+devices it shouldn't.
+
+Address blocks (CIDR blocks such as `/24` or `/29`) follow two rules. Their size is a power of two
+(1, 2, 4, 8, 16... addresses), and each block must start at a multiple of its size. So a run of
+addresses only becomes one block if it is exactly the right size and starts in exactly the right
+place:
+
+```
+192.0.2.8 – .15   (8 addresses, starts at a multiple of 8)  →  192.0.2.8/29     one block
+192.0.2.5 – .12   (8 addresses, starts at .5)               →  .5/32  .6/31  .8/30  .12/32
+```
+
+That's why a list of **individual devices** (for example, the in-use management addresses of one
+subnet) comes out as many small blocks (`/32`, `/30`, `/29`...): the unused addresses between them
+can't be included, so the gaps can't be bridged. The result is correct, it just isn't what people
+expect. Lists that are already **range-shaped** (subnets plus a few hosts), as ACLs and prefix
+lists usually are, merge into a short, tidy result.
+
+To see the one network a set of addresses sits in, use **All fit in (one block)** instead. It
+includes the unused addresses, and the **Extra addresses** count shows how many. The page shows a
+short note when your list is mostly single addresses.
+
 ## Folder layout
 
 ```
