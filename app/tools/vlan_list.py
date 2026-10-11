@@ -12,7 +12,9 @@ Every item must be a VLAN number or a range; anything else is reported as invali
 at or silently dropped. Valid VLANs are 1 to 4094. Duplicates and overlapping ranges are merged.
 
 Out come the same VLANs two ways: compressed (consecutive VLANs joined into ranges) and expanded
-(one per line), always sorted.
+(one per line), always sorted. Plus the FREE VLANs: the unused IDs between the lowest and highest
+VLAN in the list (handy when picking IDs for new subnets). Everything above the highest is free
+too, but that's obvious and would only add one big range at the end.
 
 Pure Python, no web code.
 """
@@ -77,6 +79,17 @@ def parse_vlans(text: str) -> VLANResult:
 
     result.vlans = sorted(found)
     return result
+
+
+def free_vlans(vlans: list[int]) -> list[int]:
+    """The unused VLAN IDs between the lowest and highest of `vlans` (sorted, unique).
+
+    [10, 20, 21, 23] -> [11, 12, ..., 19, 22]. Fewer than two VLANs have no gaps between them.
+    """
+    if len(vlans) < 2:
+        return []
+    used = set(vlans)
+    return [vlan for vlan in range(vlans[0] + 1, vlans[-1]) if vlan not in used]
 
 
 def compress(vlans: list[int]) -> str:

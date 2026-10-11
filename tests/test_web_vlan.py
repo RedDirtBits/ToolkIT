@@ -24,13 +24,15 @@ def test_compress_and_expand_at_once(client):
     response = client.post("/vlan", data={"vlans": "100 23 22\n21 20 10 10"}, headers=HTMX)
     assert box(response.text, "vlan-compressed") == ["10,20-23,100"]
     assert box(response.text, "vlan-expanded") == ["10", "20", "21", "22", "23", "100"]
-    assert "6 VLANs" in response.text
+    assert "6 VLANs, 85 free between 10 and 100" in response.text
+    assert box(response.text, "vlan-free") == ["11-19,24-99"]
 
 
 def test_skipped_items_are_listed(client):
     response = client.post("/vlan", data={"vlans": "UPLINK 1/1/1 7 8 9 5000"}, headers=HTMX)
     assert box(response.text, "vlan-compressed") == ["7-9"]
-    assert "3 VLANs, 3 items skipped" in response.text
+    assert "3 VLANs, 0 free between 7 and 9, 3 items skipped" in response.text
+    assert "vlan-free-output" not in response.text  # no gaps, no box
     assert "Skipped &#39;1/1/1&#39;: not a VLAN number or range" in response.text
     assert "Skipped &#39;5000&#39;: outside 1-4094" in response.text
 
@@ -56,7 +58,10 @@ def test_input_is_escaped(client):
     assert "<script>" not in response.text
 
 
-@pytest.mark.parametrize("kind, name", [("vlan-compressed", "vlans-compressed.txt"), ("vlan-expanded", "vlans.txt")])
+@pytest.mark.parametrize(
+    "kind, name",
+    [("vlan-compressed", "vlans-compressed.txt"), ("vlan-expanded", "vlans.txt"), ("vlan-free", "vlans-free.txt")],
+)
 def test_download_names(client, kind, name):
     response = client.post("/download", data={"kind": kind, "content": "10"})
     assert f'filename="{name}"' in response.headers["content-disposition"]

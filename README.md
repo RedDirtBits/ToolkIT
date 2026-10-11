@@ -27,7 +27,8 @@ internet access. ToolkIT puts these tools in one local page that works offline.
   fewest CIDR blocks that cover exactly the input (as prefixes, masks or ACL wildcards), plus the
   smallest single block that covers everything. Invalid lines are listed, never dropped silently.
 - **VLAN list:** paste VLANs in any form (`10,20-23,100`, space-separated as in switch output, or one per
-  line) and get them compressed and one per line at once, sorted, with duplicates and overlaps merged.
+  line) and get them compressed and one per line at once, sorted, with duplicates and overlaps merged,
+  plus the **free** VLAN IDs between the lowest and highest (handy when picking IDs for new subnets).
   Anything that isn't a VLAN (1-4094) is listed as skipped.
 - **Random MAC generator:** locally administered addresses by default (safe fakes that can't clash with a
   real vendor), fully random, or with a chosen OUI prefix.

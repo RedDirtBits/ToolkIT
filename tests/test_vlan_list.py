@@ -6,7 +6,7 @@ All VLAN lists here are invented. The space-separated, wrapped sample mimics the
 
 import pytest
 
-from app.tools.vlan_list import MAX_VLAN, VLANListError, compress, parse_vlans
+from app.tools.vlan_list import MAX_VLAN, VLANListError, compress, free_vlans, parse_vlans
 
 
 # --- reading -------------------------------------------------------------------------------------
@@ -99,3 +99,25 @@ def test_compress(vlans, expected):
 def test_round_trip():
     text = "5-40,44-45,60-63,77,150-161,2900"
     assert compress(parse_vlans(text).vlans) == text
+
+
+# --- free VLANs ----------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "vlans, expected",
+    [
+        ([], []),
+        ([7], []),
+        ([7, 8], []),
+        ([7, 9], [8]),
+        ([10, 20, 21, 23], [11, 12, 13, 14, 15, 16, 17, 18, 19, 22]),
+    ],
+)
+def test_free_vlans(vlans, expected):
+    assert free_vlans(vlans) == expected
+
+
+def test_free_vlans_compressed():
+    vlans = parse_vlans("5-40,44-45,60-63,77").vlans
+    assert compress(free_vlans(vlans)) == "41-43,46-59,64-76"

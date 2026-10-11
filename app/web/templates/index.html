@@ -147,7 +147,8 @@
     <p class="hint muted">
       VLAN numbers and ranges (<code>20-23</code>), separated by commas, spaces or new lines, in any
       order. Gives both forms at once: compressed (<code>10,20-23,100</code>) and one per line,
-      sorted, with duplicates and overlaps merged. Valid VLANs are 1 to 4094. Anything else (a word,
+      sorted, with duplicates and overlaps merged, plus the <b>free</b> IDs between the lowest and
+      highest (for picking new VLANs). Valid VLANs are 1 to 4094. Anything else (a word,
       a port like <code>1/1/1</code>) is listed as skipped: from a <code>show</code> command, copy just
       the VLAN numbers.
     </p>
