@@ -30,7 +30,10 @@ document.addEventListener("click", async (event) => {
 document.addEventListener("reset", (event) => {
   const tool = event.target.closest(".tool");
   if (!tool) return;
-  const result = tool.querySelector(".result");
+  // A tab with several forms (OUI lookup) names each form's result area in
+  // data-result; otherwise the tab's one result area is used.
+  const resultId = event.target.dataset.result;
+  const result = resultId ? document.getElementById(resultId) : tool.querySelector(".result");
   if (result) result.innerHTML = "";
   // The "reset" event fires just BEFORE the fields are reset, so wait a
   // moment (setTimeout 0 = "right after this") before moving the cursor.
@@ -38,4 +41,16 @@ document.addEventListener("reset", (event) => {
     const first = event.target.querySelector("textarea, input:not([type=hidden]):not([type=radio]):not([type=checkbox])");
     if (first) first.focus();
   }, 0);
+});
+
+// Enter submits: in a <textarea data-enter-submits> (the OUI lookup box),
+// Enter looks it up, like a search box; Shift+Enter still starts a new line.
+// Pasting several lines isn't affected (a paste isn't a key press).
+// requestSubmit() fires the form's normal "submit" event, which htmx listens
+// for, so it behaves exactly like clicking the button.
+document.addEventListener("keydown", (event) => {
+  const box = event.target.closest("textarea[data-enter-submits]");
+  if (!box || event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+  event.preventDefault();
+  box.form.requestSubmit();
 });

@@ -1,4 +1,4 @@
-"""Tests for the web layer: pages, the four tool forms, downloads and the local-only checks.
+"""Tests for the web layer: pages, the tool forms, downloads and the local-only checks.
 
 FastAPI's TestClient calls the app directly in memory, with no server or browser. It sends
 "Host: testserver", so the app is built with that as its allowed host name.
@@ -10,13 +10,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from app.web.oui_state import OUIState
 
 HTMX = {"HX-Request": "true"}  # the header htmx adds to its requests
 
 
 @pytest.fixture
-def client():
-    return TestClient(create_app(allowed_hosts={"testserver"}))
+def client(tmp_path):
+    # An empty OUI folder, so these tests never depend on a real downloaded list.
+    # (The OUI tab's own tests are in test_web_oui.py.)
+    return TestClient(create_app(allowed_hosts={"testserver"}, oui_state=OUIState(tmp_path)))
 
 
 def output_lines(html: str, box: str = "") -> list[str]:
@@ -34,9 +37,9 @@ def output_lines(html: str, box: str = "") -> list[str]:
 # --- main page -----------------------------------------------------------------------------------
 
 
-def test_main_page_has_four_tabs(client):
+def test_main_page_has_every_tab(client):
     page = client.get("/").text
-    for key in ("ip", "mac", "convert", "hosts"):
+    for key in ("ip", "mac", "convert", "hosts", "oui"):
         assert f'id="tab-{key}"' in page
         assert f'id="tool-{key}"' in page
 
@@ -318,7 +321,7 @@ def test_post_from_own_page_is_allowed(client):
 
 def test_every_tool_has_a_clear_button(client):
     page = client.get("/").text
-    for key in ("ip", "mac", "convert", "hosts"):
+    for key in ("ip", "mac", "convert", "hosts"):  # the OUI tab's two forms: test_web_oui.py
         # Each tool's form runs from its action="/<key>" to its result area.
         form = page[page.index(f'action="/{key}"') : page.index(f'id="{key}-result"')]
         assert '<button type="reset" class="secondary">Clear</button>' in form

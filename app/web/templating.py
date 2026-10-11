@@ -26,6 +26,7 @@ TABS = [
     ("mac", "MAC generator"),
     ("convert", "MAC converter"),
     ("hosts", "Hostname faker"),
+    ("oui", "OUI lookup"),
 ]
 TAB_KEYS = {key for key, _ in TABS}
 
@@ -34,4 +35,6 @@ def render(request: Request, template: str, status_code: int = 200, **context):
     """Render a full page or partial, with the common context added."""
     context.setdefault("app_name", settings.APP_NAME)
     context.setdefault("tabs", TABS)
+    # The OUI tab's "list from <date>" panel is part of the full page.
+    context.setdefault("oui_status", request.app.state.oui.status())
     return templates.TemplateResponse(request, template, context, status_code=status_code)

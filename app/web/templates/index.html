@@ -13,7 +13,7 @@
    Other tabs aren't touched. Reloading the page clears all tabs.
 
    Variables:
-     tab                    which tab starts selected ("ip", "mac", "convert", "hosts")
+     tab                    which tab starts selected ("ip", "mac", "convert", "hosts", "oui")
      ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
                             to fill that tab's form back in and show its result #}
 
@@ -163,6 +163,55 @@
   <div id="hosts-result" class="result">
     {% if hosts_result %}{% with result = hosts_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
+</section>
+
+{# ---- OUI lookup ---------------------------------------------------------------
+   Two forms (lookup, vendor search), each with its own result area: the
+   form's data-result names it, so Clear empties the right one (app.js). #}
+<section class="tool" id="tool-oui">
+  {% set f = oui_lookup_form or {} %}
+  <form class="panel tool-form" method="post" action="/oui/lookup" data-result="oui-lookup-result"
+        hx-post="/oui/lookup" hx-target="#oui-lookup-result" hx-swap="innerHTML">
+    <h2>Who made this MAC?</h2>
+    {# data-enter-submits: Enter looks it up, Shift+Enter starts a new line
+       (app.js). Pasting several lines works either way. Newline after ">"
+       on purpose (see _result.html). #}
+    <textarea name="macs" class="output paste" rows="2" spellcheck="false" data-enter-submits
+              placeholder="A MAC in any format, or a prefix (00:1a:2b). Paste several, one per line, for a list.">
+{{ f.macs or '' }}</textarea>
+    <div class="fields">
+      <button type="submit">Look up</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+  </form>
+  <div id="oui-lookup-result" class="result">
+    {% if oui_lookup_result %}{% with result = oui_lookup_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+
+  {% set f = oui_search_form or {} %}
+  <form class="panel tool-form" method="post" action="/oui/search" data-result="oui-search-result"
+        hx-post="/oui/search" hx-target="#oui-search-result" hx-swap="innerHTML">
+    <h2>Find a vendor's prefixes</h2>
+    <div class="fields">
+      <label>Vendor name (or part of it)
+        <input name="vendor" class="vendor" placeholder="e.g. example networks" value="{{ f.vendor or '' }}">
+      </label>
+      {% set style = f.style or 'colon' %}
+      {% include "_mac_format_fields.html" %}
+      <button type="submit">Find</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+    <p class="hint muted">
+      Lists every block IEEE registered to vendors whose name contains this text (any case).
+      24-bit blocks are shown short (<code>00:1a:2b</code>); smaller blocks as an address with
+      its length (<code>ac:12:34:50:00:00/28</code>).
+    </p>
+  </form>
+  <div id="oui-search-result" class="result">
+    {% if oui_search_result %}{% with result = oui_search_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+
+  {% include "_oui_status.html" %}
 </section>
 
 {% endblock %}

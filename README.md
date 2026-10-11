@@ -1,7 +1,8 @@
 # ToolkIT
 
 A small offline web app of everyday network utilities for network engineers: random IP and MAC address
-generators, a MAC address format converter, and a hostname faker. Runs locally on Windows (portable, embedded Python) or
+generators, a MAC address format converter, a hostname faker, and an offline MAC vendor (OUI)
+lookup. Runs locally on Windows (portable, embedded Python) or
 Linux.
 
 ## Why
@@ -23,6 +24,10 @@ internet access. ToolkIT puts these tools in one local page that works offline.
   same order, ready to paste back over the original. Parts you choose (e.g. a device role like `cor`)
   are kept, the rest become random letters/digits of the same shape, and the same real part always
   gets the same fake, so the data keeps its structure without its real names.
+- **OUI lookup:** who made this MAC? Type a MAC (any format) or a prefix and get the vendor, from an
+  offline copy of IEEE's official registry (all block sizes, longest prefix first). Paste many for a
+  vendor column. **Reverse search:** type a vendor name and get all its prefixes, e.g. for a MAC
+  filter. The list is downloaded from IEEE only when you click **Update** (or imported from a file).
 - Copy to clipboard or download results.
 
 ## Project status
@@ -33,7 +38,7 @@ internet access. ToolkIT puts these tools in one local page that works offline.
 | MAC generator | Random MACs, locally administered by default | done |
 | MAC converter | Convert between MAC formats | done |
 | Web UI | One local page, a tab per tool | done |
-| OUI lookup | Vendor lookup from an offline IEEE list | later (v2) |
+| OUI lookup | MAC → vendor and vendor → prefixes, from an offline IEEE list | done |
 | Hostname faker | Fake a list of hostnames, keeping chosen parts and the structure | done |
 
 ## Quick start (Windows, portable)
@@ -67,10 +72,14 @@ Start the app (`run.bat` on Windows, `python -m app` on Linux); the browser open
 - **Hostname faker:** paste hostnames one per line (e.g. a spreadsheet column), list the parts to keep
   (`cor, dst, acc`), pick the case and click **Fake**. Paste the result back over the real column.
   Fake hostnames that belong together in one paste: each new paste gets new fakes.
+- **OUI lookup:** the first time, click **Update from IEEE** (about 5 MB). Then type a MAC and press
+  **Enter**; paste several (one per line) for a table and a "Vendors" column to copy. Under **Find a
+  vendor's prefixes**, type part of a name. If Update can't get through a proxy, download the three
+  files named on the page in your browser and **Import** each one.
 
 Each result has **Copy** and **Download .txt** buttons. Tabs keep their results while you switch between
 them; **Clear** resets one tab (fields back to defaults, result removed), and reloading the page clears
-all of them. `?tab=mac`, `?tab=convert` or `?tab=hosts` in the address opens another tab directly (handy as a bookmark).
+all of them. `?tab=mac`, `?tab=convert`, `?tab=hosts` or `?tab=oui` in the address opens another tab directly (handy as a bookmark).
 
 ## Folder layout
 
@@ -92,8 +101,10 @@ python -m pytest -q
 ## Security notes
 
 - Listens on `127.0.0.1` only; checks `Host`, and `Origin`/`Referer` on form posts.
-- Needs no credentials and stores no data (the hostname faker forgets everything after each paste).
-  Nothing leaves the machine.
+- Needs no credentials. The only data it stores is IEEE's public vendor list, in `data/oui/`
+  (the hostname faker forgets everything after each paste).
+- The only network access is the OUI **Update** button, which downloads IEEE's public files; nothing
+  is ever sent off the machine.
 
 ## Built with
 

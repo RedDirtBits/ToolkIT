@@ -43,21 +43,40 @@ class OutputBlock:
 
 
 @dataclass
+class Table:
+    """A results table (the OUI tab's lookups and searches), shown above the output boxes.
+
+    headers   the column titles
+    rows      one list of cell texts per row
+    note      a line under the table, e.g. "first 500 rows shown"
+    """
+
+    headers: list[str]
+    rows: list[list[str]]
+    note: str = ""
+
+
+@dataclass
 class ToolResult:
     """What one tool produced, ready for the _result.html template.
 
-    kind      the tool's tab key ("ip", "mac", "convert", "hosts")
+    kind      which result this is: the tab key ("ip", "mac", ...), or for a tab with
+              several forms, one name per form ("oui_lookup", "oui_search")
+    tab       the tab it belongs to, if that isn't the same as kind
     error     a message for the user if the request was refused (then blocks is empty)
     summary   one line describing the result, e.g. "300 addresses from 172.22.14.0/23"
     blocks    the output boxes
     warnings  things worth knowing that didn't stop the result (e.g. skipped lines)
+    table     an optional results table
     """
 
     kind: str
+    tab: str = ""
     error: str | None = None
     summary: str = ""
     blocks: list[OutputBlock] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    table: Table | None = None
 
 
 def cap_warnings(warnings: list[str]) -> list[str]:
@@ -77,7 +96,7 @@ def tool_response(request: Request, result: ToolResult, form: dict[str, str]):
     return render(
         request,
         "index.html",
-        tab=result.kind,
+        tab=result.tab or result.kind,
         # e.g. ip_result / ip_form, which index.html hands to that tab only.
         **{f"{result.kind}_result": result, f"{result.kind}_form": form},
     )

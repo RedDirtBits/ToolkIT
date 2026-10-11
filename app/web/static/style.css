@@ -135,7 +135,8 @@ mark { background: var(--mark); color: #111827; border-radius: 2px; }  /* no pad
 body:has(#tab-ip:checked) .tool:not(#tool-ip),
 body:has(#tab-mac:checked) .tool:not(#tool-mac),
 body:has(#tab-convert:checked) .tool:not(#tool-convert),
-body:has(#tab-hosts:checked) .tool:not(#tool-hosts) { display: none; }
+body:has(#tab-hosts:checked) .tool:not(#tool-hosts),
+body:has(#tab-oui:checked) .tool:not(#tool-oui) { display: none; }
 
 /* --- Tool forms -------------------------------------------------------------- */
 .fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin: 8px 0; }
@@ -145,6 +146,13 @@ input.count { width: 110px; }
 input.network { width: 230px; font-family: var(--mono); }
 input.oui { width: 110px; font-family: var(--mono); }
 input.keep { width: 280px; font-family: var(--mono); }
+input.vendor { width: 260px; }
+
+/* --- OUI tab ------------------------------------------------------------------ */
+.result-table { margin: 8px 0 12px; }
+.result-table td:first-child { font-family: var(--mono); white-space: nowrap; }
+.import-form { display: flex; gap: 8px; align-items: center; }
+#tool-oui .result:not(:empty) { margin-bottom: 14px; }
 fieldset.choices { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px 6px; margin: 0; }
 fieldset.choices legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
 fieldset.choices label { display: inline-flex; gap: 6px; align-items: center; }

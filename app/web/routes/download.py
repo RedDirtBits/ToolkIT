@@ -25,11 +25,14 @@ FILE_NAMES = {
     "convert-hyphen": "mac-hyphen.txt",
     "convert-dotted": "mac-dotted.txt",
     "hosts": "fake-hostnames.txt",
+    "oui-vendors": "mac-vendors.txt",
+    "oui-prefixes": "vendor-prefixes.txt",
 }
 
-# Results whose blank lines matter: the hostname faker's output lines up row
-# for row with a spreadsheet column, so an empty row must stay empty.
-KEEP_BLANK_LINES = {"hosts"}
+# Results whose blank lines matter: the hostname faker's and the OUI lookup's
+# output line up row for row with a spreadsheet column, so an empty row must
+# stay empty.
+KEEP_BLANK_LINES = {"hosts", "oui-vendors"}
 
 
 @router.post("/download")

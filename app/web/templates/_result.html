@@ -10,6 +10,18 @@
     {% for warning in result.warnings %}
       <div class="warn-text">{{ warning }}</div>
     {% endfor %}
+    {# An optional results table (the OUI tab), above the output boxes. #}
+    {% if result.table and result.table.rows %}
+      <table class="grid result-table">
+        <thead><tr>{% for header in result.table.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for row in result.table.rows %}
+            <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if result.table.note %}<p class="muted">{{ result.table.note }}</p>{% endif %}
+    {% endif %}
     {# One box per OutputBlock: the generators have one, the converter one per
        format. "blocks" lays several out side by side (see style.css). #}
     <div class="blocks">
