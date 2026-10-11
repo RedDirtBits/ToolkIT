@@ -10,7 +10,23 @@
     {% for warning in result.warnings %}
       <div class="warn-text">{{ warning }}</div>
     {% endfor %}
-    {# An optional results table (the OUI tab), above the output boxes. #}
+    {# Optional label/value rows, each with a Copy button (subnet calculator).
+       The value sits in its own <span id=...> so Copy takes just that text. #}
+    {% if result.details %}
+      <table class="grid details-table">
+        <tbody>
+          {% for label, value in result.details %}
+            {% set value_id = result.kind ~ "-detail-" ~ loop.index %}
+            <tr>
+              <th scope="row">{{ label }}</th>
+              <td><span id="{{ value_id }}" class="detail-value">{{ value }}</span></td>
+              <td class="copy-cell"><button type="button" class="secondary small" data-copy="{{ value_id }}">Copy</button></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    {# An optional results table (the OUI tab, subnet splits), above the output boxes. #}
     {% if result.table and result.table.rows %}
       <table class="grid result-table">
         <thead><tr>{% for header in result.table.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>

@@ -13,7 +13,7 @@
    Other tabs aren't touched. Reloading the page clears all tabs.
 
    Variables:
-     tab                    which tab starts selected ("ip", "mac", "convert", "hosts", "oui")
+     tab                    which tab starts selected ("ip", "subnet", "mac", "convert", "hosts", "oui")
      ip_form / ip_result    (etc.) only set after a no-JavaScript form post,
                             to fill that tab's form back in and show its result #}
 
@@ -62,6 +62,35 @@
   </form>
   <div id="ip-result" class="result">
     {% if ip_result %}{% with result = ip_result %}{% include "_result.html" %}{% endwith %}{% endif %}
+  </div>
+</section>
+
+{# ---- Subnet calculator ------------------------------------------------------- #}
+{% set f = subnet_form or {} %}
+<section class="tool" id="tool-subnet">
+  <form class="panel tool-form" method="post" action="/subnet"
+        hx-post="/subnet" hx-target="#subnet-result" hx-swap="innerHTML">
+    <h2>Subnet calculator</h2>
+    <div class="fields">
+      <label>Address with prefix, mask or wildcard
+        <input name="address" class="network" placeholder="e.g. 192.168.4.17/22" value="{{ f.address or '' }}">
+      </label>
+      <label>Split into (optional)
+        <input name="split" class="count" placeholder="/26 or 8" value="{{ f.split or '' }}">
+      </label>
+      <button type="submit">Calculate</button>
+      <button type="reset" class="secondary">Clear</button>
+    </div>
+    <p class="hint muted">
+      Accepts <code>192.168.4.17/22</code>, <code>192.168.4.17 255.255.252.0</code> or an ACL
+      wildcard <code>192.168.4.0 0.0.3.255</code> (mask or wildcard is worked out from its shape).
+      Any address in the subnet works. <b>Split into</b>: a new prefix (<code>/26</code>) or a number
+      of subnets (<code>8</code>, rounded up to a power of two). /31 is shown as a point-to-point link
+      (both addresses usable), /32 as a single host.
+    </p>
+  </form>
+  <div id="subnet-result" class="result">
+    {% if subnet_result %}{% with result = subnet_result %}{% include "_result.html" %}{% endwith %}{% endif %}
   </div>
 </section>
 

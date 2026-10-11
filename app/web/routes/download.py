@@ -27,6 +27,7 @@ FILE_NAMES = {
     "hosts": "fake-hostnames.txt",
     "oui-vendors": "mac-vendors.txt",
     "oui-prefixes": "vendor-prefixes.txt",
+    "subnets": "subnets.txt",
 }
 
 # Results whose blank lines matter: the hostname faker's and the OUI lookup's

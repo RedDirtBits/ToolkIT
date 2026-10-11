@@ -23,6 +23,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 # (tab-ip, tool-ip), form posts (/ip) and the ?tab= address.
 TABS = [
     ("ip", "IP generator"),
+    ("subnet", "Subnet calculator"),
     ("mac", "MAC generator"),
     ("convert", "MAC converter"),
     ("hosts", "Hostname faker"),

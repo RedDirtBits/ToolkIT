@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import settings
 from app.web.oui_state import OUIState
-from app.web.routes import convert, download, hosts, ip, mac, oui, pages
+from app.web.routes import convert, download, hosts, ip, mac, oui, pages, subnet
 from app.web.security import DEFAULT_ALLOWED_HOSTS, local_only_middleware
 
 STATIC_DIR = Path(__file__).parent / "web" / "static"
@@ -33,7 +33,7 @@ def create_app(allowed_hosts: set[str] | None = None, oui_state: OUIState | None
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     # Each routes file is a "router": a bundle of related pages.
-    for module in (pages, ip, mac, convert, hosts, oui, download):
+    for module in (pages, ip, subnet, mac, convert, hosts, oui, download):
         app.include_router(module.router)
 
     return app

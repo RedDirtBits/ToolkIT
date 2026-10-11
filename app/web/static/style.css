@@ -133,6 +133,7 @@ mark { background: var(--mark); color: #111827; border-radius: 2px; }  /* no pad
    checked #tab-ip?". Browsers too old for :has() simply show all the
    tools, one under the other: still usable. */
 body:has(#tab-ip:checked) .tool:not(#tool-ip),
+body:has(#tab-subnet:checked) .tool:not(#tool-subnet),
 body:has(#tab-mac:checked) .tool:not(#tool-mac),
 body:has(#tab-convert:checked) .tool:not(#tool-convert),
 body:has(#tab-hosts:checked) .tool:not(#tool-hosts),
@@ -153,6 +154,17 @@ input.vendor { width: 260px; }
 .result-table td:first-child { font-family: var(--mono); white-space: nowrap; }
 .import-form { display: flex; gap: 8px; align-items: center; }
 #tool-oui .result:not(:empty) { margin-bottom: 14px; }
+
+/* --- Subnet calculator: label / value / Copy rows --------------------------- */
+/* "table.grid.details-table" (not just ".details-table") so it outranks the kit's
+   "table.grid { width: 100% }": keeps each Copy button close to its value. */
+table.grid.details-table { width: auto; min-width: min(560px, 100%); margin: 8px 0 12px; }
+.details-table th { width: 11em; }
+.detail-value { font-family: var(--mono); }
+/* No percentage width here: in an auto-width table, a "%" column makes the
+   browser stretch the whole table to full width. */
+.copy-cell { white-space: nowrap; }
+button.small { padding: 2px 10px; font-size: 12px; }
 fieldset.choices { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px 6px; margin: 0; }
 fieldset.choices legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
 fieldset.choices label { display: inline-flex; gap: 6px; align-items: center; }

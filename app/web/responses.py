@@ -68,6 +68,8 @@ class ToolResult:
     blocks    the output boxes
     warnings  things worth knowing that didn't stop the result (e.g. skipped lines)
     table     an optional results table
+    details   optional (label, value) rows, each value with its own Copy button
+              (the subnet calculator)
     """
 
     kind: str
@@ -77,6 +79,7 @@ class ToolResult:
     blocks: list[OutputBlock] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     table: Table | None = None
+    details: list[tuple[str, str]] = field(default_factory=list)
 
 
 def cap_warnings(warnings: list[str]) -> list[str]:

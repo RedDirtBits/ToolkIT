@@ -13,11 +13,18 @@ document.addEventListener("click", async (event) => {
   try {
     // The clipboard API works on http://127.0.0.1 because browsers treat the
     // local machine as a "secure context".
-    await navigator.clipboard.writeText(source.value);
+    // A text box has a .value; any other element (a <span> in the subnet
+    // calculator's table) gives its text instead.
+    const text = "value" in source ? source.value : source.textContent;
+    await navigator.clipboard.writeText(text);
     button.textContent = "Copied";
   } catch (error) {
     // Clipboard blocked (rare): select the text so Ctrl+C works.
-    source.select();
+    if (source.select) {
+      source.select();
+    } else {
+      window.getSelection().selectAllChildren(source);
+    }
     button.textContent = "Press Ctrl+C";
   }
   setTimeout(() => { button.textContent = label; }, 1500);
