@@ -26,8 +26,8 @@ internet access. ToolkIT puts these tools in one local page that works offline.
 | Piece | What it does | Status |
 |---|---|---|
 | IP generator | Random IPs by subnet or count | core done (no page yet) |
-| MAC generator | Random MACs, locally administered by default | planned |
-| MAC converter | Convert between MAC formats | planned |
+| MAC generator | Random MACs, locally administered by default | core done (no page yet) |
+| MAC converter | Convert between MAC formats | core done (no page yet) |
 | Web UI | One local page for all tools | planned |
 | OUI lookup | Vendor lookup from an offline IEEE list | later (v2) |
 | Hostname generator | Random hostnames from a pattern | later (v2) |
