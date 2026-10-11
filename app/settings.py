@@ -5,6 +5,8 @@ Every other module imports values from here instead of hard-coding them, so
 changing (for example) the port means editing one line.
 """
 
+from pathlib import Path
+
 APP_NAME = "ToolkIT"
 
 # Listen on the laptop itself only. NEVER change this to "0.0.0.0": that
@@ -22,3 +24,8 @@ MAX_CONVERT_LINES = 65_534
 # but a full /16 of results in "ip mask" style is about 2 MB, and it comes
 # back through the Download button (and big pastes into the converter).
 MAX_FORM_FIELD_BYTES = 8 * 1024 * 1024
+
+# Where the OUI lookup keeps IEEE's registry files (downloaded by the
+# Update button or imported). data/ is git-ignored and ships empty in a
+# release: each user fetches their own copy.
+OUI_DIR = Path(__file__).resolve().parent.parent / "data" / "oui"
