@@ -1,7 +1,9 @@
 """Replace a pasted list of real hostnames with fake ones of the same shape.
 
 The job: a spreadsheet column of real hostnames goes in, a column of fakes comes out, one per line
-and in the same order, so it can be pasted straight back over the real column.
+and in the same order, so it can be pasted straight back over the real column. The fakes keep the
+data's *structure* (which devices share a site, a building, a role) while hiding the real names, so
+the list can be shared with Claude or colleagues.
 
 How a hostname is faked:
 
@@ -14,17 +16,20 @@ How a hostname is faked:
 
 2. A piece on the user's keep list (whole piece, ignoring case) stays as it is. With "cor" and "hq"
    kept, the device role and site prefix stay readable.
-3. Every other piece is replaced by random characters of the same kind and length: letters become
-   random letters, digits become random digits.
+3. Every other piece is replaced by random characters of the same kind and length (letters become
+   letters, digits become digits), and **the same real piece always gets the same fake piece**:
 
-       exsite-wing-bld01a-cor-01  ->  wqzte-mlax-rvk37f-cor-58
+       exsite-wing-bld01a-cor-01  ->  kauti-bueh-pra30n-cor-58
+       exsite-wing-bld01a-dst-01  ->  kauti-bueh-pra30n-dst-58      (same site, still visibly so)
        hq6500a                   ->  hq2914k
 
 Rules:
 - Blank lines stay blank, so the output lines up row for row with the input.
-- The same real hostname always gets the same fake (ignoring case), so a spreadsheet stays consistent.
-- Two different real hostnames never get the same fake, and a fake is never one of the real
-  hostnames from the paste.
+- Matching ignores case; each fake is written in the case asked for (by default, the real name's).
+- Different real pieces never share a fake piece, so different hostnames never share a fake.
+- A fake piece avoids the real pieces and keep words whenever there's room. Only if a short piece
+  size runs out of other values (e.g. nearly all 100 two-digit numbers are in use) is a real value
+  reused; a fake that ends up equal to a real hostname from the paste is then reported.
 - A line whose pieces are all on the keep list can't be faked. It's reported, not silently passed on.
 
 Pure Python, no web code.
@@ -32,6 +37,7 @@ Pure Python, no web code.
 
 from __future__ import annotations
 
+import itertools
 import random
 import re
 import string
@@ -46,14 +52,19 @@ MAX_LINES = 65_534
 #   upper  everything uppercase
 CASES = ("same", "lower", "upper")
 
-# How many times to re-roll a fake that clashes with one already used before giving up. A clash is
-# rare unless a shape has very few possible fakes (e.g. "a-1" with "a" kept: only 10), and then
-# giving up with a clear message is the right answer anyway.
-_MAX_TRIES = 200
-
 # One piece = a run of letters, OR a run of digits, OR a run of anything else (the separators).
 # findall() returns the runs in order, so joining them gives back the original string exactly.
 _PIECE = re.compile(r"[A-Za-z]+|[0-9]+|[^A-Za-z0-9]+")
+
+# Piece sizes with at most this many possible values (up to 5 digits = 100,000, up to 3 letters =
+# 17,576) are dealt from a shuffled "deck" of every value, so they never run out early or slow down
+# as they fill up. Bigger sizes (6+ digits, 4+ letters) have so many values that picking at random
+# and re-rolling the rare clash is enough. (A 5-digit deck is ~100,000 short strings: a few MB,
+# built only if such a piece appears.)
+_DECK_LIMIT = 100_000
+
+# How many times to re-roll a clashing random value (big piece sizes only) before giving up.
+_MAX_TRIES = 200
 
 
 class HostnameFakerError(ValueError):
@@ -65,12 +76,15 @@ class FakeResult:
     """What fake_hostnames() produced.
 
     `fakes` has exactly one entry per input line (blank for blank lines), so it lines up with the
-    spreadsheet. `unchanged` lists the lines that couldn't be faked because every piece was kept,
-    as (line number, text) pairs, so the page can warn about them.
+    spreadsheet. The two warning lists hold (line number, text) pairs, so the page can name them:
+      `unchanged`     lines that couldn't be faked because every piece is on the keep list;
+      `matches_real`  lines whose fake happens to equal a different real hostname from the paste
+                      (only possible when a short piece size ran out of unused values).
     """
 
     fakes: list[str] = field(default_factory=list)
     unchanged: list[tuple[int, str]] = field(default_factory=list)
+    matches_real: list[tuple[int, str]] = field(default_factory=list)
 
 
 def split_pieces(hostname: str) -> list[str]:
@@ -112,14 +126,13 @@ def fake_hostnames(
     if len(lines) > MAX_LINES:
         raise HostnameFakerError(f"Paste at most {MAX_LINES:,} lines at a time.")
 
-    # Every real hostname in the paste, lowercase. A fake must never be one of these, or the "fake"
-    # list could contain a real device name.
+    # Everything real in the paste, lowercase: whole names (to spot a fake that equals one) and
+    # letter/digit pieces (which fake pieces try to avoid).
     real_names = {line.lower() for line in lines if line}
-
-    # real hostname (lowercase) -> its fake (lowercase). This is what makes repeats consistent.
-    fake_for: dict[str, str] = {}
-    # Every fake handed out so far, so no two real hostnames share one.
-    used_fakes: set[str] = set()
+    real_pieces = {
+        piece for name in real_names for piece in split_pieces(name) if not _is_separator(piece)
+    }
+    piece_map = _PieceMap(keep_words, real_pieces, rng)
 
     result = FakeResult()
     for line_number, line in enumerate(lines, start=1):
@@ -128,53 +141,90 @@ def fake_hostnames(
             continue
 
         key = line.lower()
-        if key not in fake_for:
-            fake_for[key] = _new_fake(key, keep_words, real_names, used_fakes, rng)
-            used_fakes.add(fake_for[key])
-        fake = fake_for[key]
+        fake = "".join(piece_map.fake(piece) for piece in split_pieces(key))
 
         if fake == key:
             # Nothing in this line could be faked (every piece is on the keep list).
             result.unchanged.append((line_number, line))
+        elif fake in real_names:
+            result.matches_real.append((line_number, line))
 
         result.fakes.append(_apply_case(fake, line, case))
     return result
 
 
-def _new_fake(
-    hostname: str,
-    keep_words: set[str],
-    real_names: set[str],
-    used_fakes: set[str],
-    rng: random.Random,
-) -> str:
-    """Make one fake for a (lowercase) hostname that doesn't clash with anything used so far."""
-    pieces = split_pieces(hostname)
+class _PieceMap:
+    """Hands out fake pieces, remembering them so the same real piece always gets the same fake.
 
-    # If every letter/digit piece is kept, there's nothing to randomize: return the name unchanged
-    # and let the caller report it. (Re-rolling would just produce the same name forever.)
-    if all(_is_separator(piece) or piece in keep_words for piece in pieces):
-        return hostname
+    Think of it as a translation dictionary that's filled in as words come up: the first time
+    "exsite" is seen it gets a new fake word, and every later "exsite" is looked up, not re-rolled.
+    """
 
-    for _ in range(_MAX_TRIES):
-        fake = "".join(_fake_piece(piece, keep_words, rng) for piece in pieces)
-        if fake not in used_fakes and fake not in real_names:
-            return fake
-    raise HostnameFakerError(
-        f"Ran out of unique fakes for hostnames shaped like '{hostname}': there are too many of "
-        "them for the few characters left to randomize. Keep fewer of its pieces."
-    )
+    def __init__(self, keep_words: set[str], real_pieces: set[str], rng: random.Random) -> None:
+        self.keep_words = keep_words
+        self.real_pieces = real_pieces
+        self.rng = rng
+        self.fake_for: dict[str, str] = {}  # real piece -> its fake piece
+        self.used: set[str] = set()  # every fake piece handed out (big piece sizes only)
+        self.decks: dict[tuple[str, int], list[str]] = {}  # (alphabet, length) -> values left
 
+    def fake(self, piece: str) -> str:
+        """Return the fake for one lowercase piece (separators and kept words come back as-is)."""
+        if _is_separator(piece) or piece in self.keep_words:
+            return piece
+        if piece not in self.fake_for:
+            self.fake_for[piece] = self._new_value(piece)
+        return self.fake_for[piece]
 
-def _fake_piece(piece: str, keep_words: set[str], rng: random.Random) -> str:
-    """Return a kept piece or separator as-is; replace any other piece with random characters."""
-    if piece in keep_words or _is_separator(piece):
-        return piece
-    if piece[0] in string.digits:
-        # rng.choices(population, k=n) picks n items, repeats allowed: "6500" -> e.g. "2914".
-        return "".join(rng.choices(string.digits, k=len(piece)))
-    # Otherwise it's a letter run.
-    return "".join(rng.choices(string.ascii_lowercase, k=len(piece)))
+    def _new_value(self, piece: str) -> str:
+        """Pick an unused value of the same kind and length as `piece`."""
+        alphabet = string.digits if piece[0] in string.digits else string.ascii_lowercase
+        length = len(piece)
+
+        if len(alphabet) ** length <= _DECK_LIMIT:
+            deck = self.decks.get((alphabet, length))
+            if deck is None:
+                deck = self.decks[(alphabet, length)] = self._build_deck(alphabet, length)
+            if not deck:
+                raise HostnameFakerError(
+                    f"There are more different {length}-character pieces like '{piece}' than "
+                    "fakes of that size, so they can't all get a different one. Keep fewer words "
+                    "of that size."
+                )
+            # pop() deals from the end of the list, where the preferred (non-real) values are.
+            return deck.pop()
+
+        # Big piece size: pick at random and re-roll clashes. Same preference as the deck: first try
+        # to avoid real pieces too; if real values fill most of this size (e.g. tens of thousands of
+        # different 5-digit numbers pasted), allow them rather than fail.
+        for avoid_real in (True, False):
+            for _ in range(_MAX_TRIES):
+                # rng.choices(population, k=n) picks n items, repeats allowed: e.g. "kauti".
+                value = "".join(self.rng.choices(alphabet, k=length))
+                if value in self.used or value in self.keep_words:
+                    continue
+                if avoid_real and value in self.real_pieces:
+                    continue
+                self.used.add(value)
+                return value
+        raise HostnameFakerError(
+            f"Ran out of unique fakes for pieces like '{piece}'. Paste fewer lines at a time."
+        )
+
+    def _build_deck(self, alphabet: str, length: int) -> list[str]:
+        """Every value of this kind and length, shuffled, with real pieces at the bottom.
+
+        itertools.product(alphabet, repeat=2) gives every pair: ('0','0'), ('0','1') ... ('9','9').
+        Keep words are left out entirely (a fake must never look like a kept role). Real pieces go
+        at the start of the list, so pop() only reaches them once every other value is used up.
+        """
+        values = ["".join(chars) for chars in itertools.product(alphabet, repeat=length)]
+        values = [v for v in values if v not in self.keep_words]
+        real = [v for v in values if v in self.real_pieces]
+        other = [v for v in values if v not in self.real_pieces]
+        self.rng.shuffle(real)
+        self.rng.shuffle(other)
+        return real + other
 
 
 def _is_separator(piece: str) -> bool:

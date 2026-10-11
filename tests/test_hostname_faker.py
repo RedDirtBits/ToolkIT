@@ -129,12 +129,51 @@ def test_different_names_get_different_fakes():
     assert len(set(fakes)) == 1000
 
 
-def test_too_few_possible_fakes_is_refused():
-    # Only 10 fakes are possible ("x-0" .. "x-9"), and 9 of them are real names from this paste,
-    # which leaves 1 fake for 9 names. It must fail clearly, not loop forever or reuse real names.
+def test_short_piece_size_running_out_reuses_real_values_and_reports_it():
+    # Only 10 one-digit values exist and 9 of them are real here, so after "9" is dealt the deck
+    # must reuse real values. Fakes must still all differ, and any that equal a real name are named.
     names = [f"x-{n}" for n in range(9)]
-    with pytest.raises(HostnameFakerError, match="Ran out of unique fakes"):
-        fake_hostnames("\n".join(names), {"x"}, rng=seeded())
+    result = fake_hostnames("\n".join(names), {"x"}, rng=seeded())
+    assert len(set(result.fakes)) == 9
+    clashing = {text for _, text in result.matches_real}
+    assert clashing == {real for real, fake in zip(names, result.fakes) if fake in names}
+    assert len(clashing) == 8  # one line got "x-9", the other 8 had to reuse real digits
+
+
+def test_real_pieces_avoided_when_there_is_room():
+    # 2-digit pieces: 100 values, only 3 real, so no fake piece should be a real one.
+    names = ["sw-01", "sw-02", "sw-03"]
+    for seed in range(50):
+        result = fake_hostnames("\n".join(names), {"sw"}, rng=random.Random(seed))
+        assert not {f[-2:] for f in result.fakes} & {"01", "02", "03"}
+        assert result.matches_real == []
+
+
+# --- fake_hostnames: consistent pieces ------------------------------------------------------------
+
+
+def test_same_piece_gets_same_fake_everywhere():
+    text = "exsite-wing-bld01a-cor-01\nexsite-wing-bld01a-dst-01\nexsite-lab-bld02a-acc-07"
+    a, b, c = fake_hostnames(text, {"cor", "dst", "acc"}, rng=seeded()).fakes
+    # Rows 1 and 2 share everything but the role, so their fakes must too.
+    assert a.replace("-cor-", "-?-") == b.replace("-dst-", "-?-")
+    # Row 3 shares the site "exsite" and the "bld" and "a" pieces, but not "wing" or "01".
+    pa, pc = split_pieces(a), split_pieces(c)
+    assert pa[0] == pc[0] and pa[4] == pc[4] and pa[6] == pc[6]
+    assert pa[2] != pc[2] and pa[5] != pc[5]
+
+
+def test_different_pieces_get_different_fakes():
+    text = "\n".join(f"{site}-sw" for site in ("ab", "cd", "ef", "gh", "ij", "kl"))
+    fakes = fake_hostnames(text, {"sw"}, rng=seeded()).fakes
+    assert len({f.split("-")[0] for f in fakes}) == 6
+
+
+def test_fake_piece_is_never_a_keep_word():
+    # "cor" is kept; the 3-letter site pieces must never be faked into "cor".
+    text = "\n".join(f"{a}{b}x-cor" for a in "abcdefgh" for b in "abcdefgh")
+    for fake in fake_hostnames(text, {"cor"}, rng=seeded()).fakes:
+        assert split_pieces(fake)[0] != "cor"
 
 
 def test_fakes_avoid_real_names_when_possible():
@@ -186,3 +225,11 @@ def test_windows_line_endings_and_stray_spaces():
     result = fake_hostnames("  lab-sw-01 \r\nlab-sw-02\t\r\n", {"lab", "sw"}, rng=seeded())
     assert len(result.fakes) == 2
     assert all(f.startswith("lab-sw-") and len(f) == 9 for f in result.fakes)
+
+
+def test_maximum_paste_with_mostly_real_big_pieces():
+    # 65,534 different 5-digit numbers fill most of the 100,000 possible values, so the random path
+    # must fall back to reusing real values instead of failing. Every fake must still be different.
+    text = "\n".join(f"acc-{n:05d}" for n in range(MAX_LINES))
+    result = fake_hostnames(text, {"acc"}, rng=seeded())
+    assert len(set(result.fakes)) == MAX_LINES
