@@ -177,6 +177,16 @@ python -m pytest -q
 About 400 tests (416 on Linux; 404 on Windows, where the release-build tests are skipped), using fake data only (documentation IP ranges, invented hostnames, small invented
 IEEE registry files); none of them touch the network.
 
+The code is also linted and formatted with [ruff](https://docs.astral.sh/ruff/) and type-checked
+with [mypy](https://mypy-lang.org/); their settings are in `pyproject.toml`. All three should report
+no problems:
+
+```bash
+ruff check .
+ruff format --check .
+mypy
+```
+
 ## Project layout
 
 ```
