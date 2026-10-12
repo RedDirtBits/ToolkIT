@@ -167,6 +167,60 @@ Share the zip from `build/`, never a copy of your working folder.
 - The only network access is the OUI **Update** button, which downloads IEEE's public files when you
   click it. Nothing you paste is ever sent off the machine.
 
+## Runbook
+
+For whoever runs ToolkIT day to day. Colleagues using the release zip have the same steps, with
+pictures, in `GETTING-STARTED.html`.
+
+- **Start:** double-click `run.bat` (Windows portable) or run `python -m app`. A console window
+  shows `ToolkIT is starting at http://127.0.0.1:8780/` and the browser opens. Add `--no-browser`
+  to start without opening one.
+- **Stop:** press Ctrl+C in the console, or close the console window.
+- **Update the app:** stop it, extract or pull the new version (a release zip goes into a **new**
+  folder), and start it again. To keep the vendor list, copy `data/` from the old folder, or click
+  **Update from IEEE** once in the new one.
+- **Update the vendor list:** OUI lookup tab, **Update from IEEE**. The page shows the date of the
+  oldest of the three files.
+- **Back up:** nothing to back up. ToolkIT stores no user data; `data/oui/` can always be
+  downloaded again.
+- **Recover:** if the OUI lookup misbehaves, delete `data/oui/` and click Update. A failed Update
+  or Import never damages the existing list (files are checked first, then swapped in whole).
+
+**Common errors and what they mean**
+
+| What you see | What it means | What to do |
+|---|---|---|
+| Console error "address already in use" / error 10048 | ToolkIT (or another app) already uses port 8780 | Use the open ToolkIT window, or close it first |
+| "This site can't be reached" | The console was closed, so the app stopped | Start it again |
+| `Forbidden: this app only answers requests addressed to 127.0.0.1` | The page was opened under another name (e.g. the PC's network name) | Use `http://127.0.0.1:8780` or `http://localhost:8780` |
+| "Couldn't reach IEEE" on Update | No internet, or a proxy that needs a login | Download the three files named on the page in the browser, then **Import** each one |
+| "There's no vendor list yet" | `data/oui/` is empty (first run, or deleted) | Click **Update from IEEE** once |
+| A count or paste is refused as too large | Over the 65,534-item limit (see below) | Split the request into parts |
+
+## Known limitations
+
+- **IPv4 only** in the IP generator, subnet calculator and IP list cleanup.
+- **At most 65,534 items per request** (one full /16) in every tool, and 8 MB per form field. The IP
+  generator only fills networks of /16 to /30; /31 and /32 are refused there (the subnet calculator
+  does handle them).
+- **Results tables show the first 500 rows** (OUI lookup and search, subnet splits); the output
+  boxes, Copy and Download always have everything.
+- **The vendor list is only as fresh as the last Update.** It isn't refreshed automatically. Update
+  works through a proxy that uses the system settings, but not one that needs a login or a setup
+  script; use Import there.
+- **Hostname faker:** fakes are consistent within one paste only; pasting again gives new fakes.
+  Dots are separators like `-` and `_`, so the domain of an FQDN is faked too unless its pieces are
+  on the keep list. If a shape runs out of unique fakes (very short pieces, many values), the
+  affected lines are reported.
+- **MAC converter formats:** colon, hyphen and Cisco dotted. Other formats (e.g. `aabbcc-ddeeff`)
+  aren't read or written.
+- **VLAN list:** IDs 1–4094 only, numbers and ranges only; it doesn't read VLANs out of whole
+  `show` output.
+- **One user per copy.** It's built for one person on their own machine; it isn't meant to be
+  shared over the network (and refuses to listen on anything but `127.0.0.1`).
+- **Release builds are made on Windows.** `tools/build_release.py` runs on Linux too, but the
+  smoke test of the bundled Python only runs on Windows.
+
 ## Running the tests
 
 ```bash
@@ -199,7 +253,8 @@ ToolkIT/
 ├── tools/        # build_release.py: makes the colleague zip
 ├── run.bat       # Windows launcher for the portable setup
 ├── build_release.bat      # double-click to build the colleague zip (Windows)
-└── GETTING-STARTED.html   # the guide shipped in the zip
+├── GETTING-STARTED.html   # the guide shipped in the zip
+└── ARCHITECTURE.md        # how it's built and why: layers, data flow, decisions
 ```
 
 ## Development notes
