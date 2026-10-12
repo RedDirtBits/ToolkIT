@@ -6,6 +6,7 @@ per test.
 """
 
 import urllib.error
+from email.message import Message
 from pathlib import Path
 
 import pytest
@@ -66,7 +67,8 @@ def test_failed_download_keeps_the_old_files(tmp_path):
 
 def test_http_error_is_explained(tmp_path):
     def refusing_fetch(url):
-        raise urllib.error.HTTPError(url, 418, "I'm a teapot", {}, None)
+        # Message() = empty HTTP headers (the type urllib uses for them).
+        raise urllib.error.HTTPError(url, 418, "I'm a teapot", Message(), None)
 
     with pytest.raises(OUIUpdateError, match="HTTP 418"):
         update_from_ieee(tmp_path, fetch=refusing_fetch)
