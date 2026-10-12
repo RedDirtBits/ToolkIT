@@ -17,8 +17,10 @@ venv/
 # Release builds (tools/build_release.py): the staged folder and the zips.
 build/
 
-# pytest's own cache folder.
+# Caches of pytest, ruff and mypy (rebuilt automatically).
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 # The Windows embedded Python folder: ~100 MB of downloaded files, not project code.
 python/

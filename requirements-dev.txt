@@ -6,3 +6,5 @@
 
 pytest>=8.0
 httpx2>=2.0              # Used by FastAPI's test client (Starlette 1.x prefers httpx2 over httpx)
+ruff==0.17.0             # Linter + formatter. Pinned exactly: its default rules change between versions
+mypy>=2.4                # Type checker (reads the type hints; the app never imports it)

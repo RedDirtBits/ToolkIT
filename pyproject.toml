@@ -7,3 +7,24 @@ pythonpath = ["."]
 # Starlette's test client prints a deprecation notice about the httpx
 # package on every run; it's harmless for our tests.
 filterwarnings = ["ignore::DeprecationWarning:starlette.testclient", "ignore:Using `httpx`"]
+
+# ruff: linter ("ruff check") and formatter ("ruff format"). Development only.
+# Run:  ../venv/bin/ruff check .   and   ../venv/bin/ruff format --check .
+[tool.ruff]
+# The oldest Python the code must run on (3.12 to 3.14 are supported).
+target-version = "py312"
+# The code is written to about 110 characters; ruff's default (88) would rewrap most files.
+line-length = 110
+# No [tool.ruff.lint] "select" list: ruff's own default rules are used. Those defaults change
+# between ruff versions, so requirements-dev.txt pins ruff exactly; upgrading it is a deliberate step.
+
+# mypy: checks that values match their type hints. Development only.
+# Run:  ../venv/bin/mypy   (the folders to check are listed below)
+[tool.mypy]
+python_version = "3.12"
+files = ["app", "tools", "tests"]
+# tools/ and tests/ have no __init__.py; without this, mypy sees tools/build_release.py
+# under two module names ("build_release" and "tools.build_release") and stops.
+explicit_package_bases = true
+# Also check inside functions that have no type hints (most tests). Plain mypy skips them.
+check_untyped_defs = true
