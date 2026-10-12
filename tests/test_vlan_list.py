@@ -8,7 +8,6 @@ import pytest
 
 from app.tools.vlan_list import MAX_VLAN, VLANListError, compress, free_vlans, parse_vlans
 
-
 # --- reading -------------------------------------------------------------------------------------
 
 
