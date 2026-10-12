@@ -52,8 +52,13 @@ TABS = [
 TAB_KEYS = {key for key, _ in TABS}
 
 
-def render(request: Request, template: str, status_code: int = 200, **context):
-    """Render a full page or partial, with the common context added."""
+def render(request: Request, template: str, status_code: int = 200, /, **context):
+    """Render a full page or partial, with the common context added.
+
+    The "/" makes the first three arguments positional-only: they can't be given as name=value.
+    So every name=value argument (e.g. result=..., tab=...) goes into the template's context,
+    even one called "status_code", and can never change the HTTP status by accident.
+    """
     context.setdefault("app_name", settings.APP_NAME)
     context.setdefault("tabs", TABS)
     # The OUI tab's "list from <date>" panel is part of the full page.
