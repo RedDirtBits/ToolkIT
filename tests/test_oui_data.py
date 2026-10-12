@@ -40,7 +40,9 @@ def test_load_folder_with_no_files_gives_none(tmp_path):
 
 def test_load_folder_with_only_some_files(tmp_path):
     (tmp_path / "mam.csv").write_text((FIXTURES / "mam.csv").read_text())
-    assert load_folder(tmp_path).counts() == {"MA-S": 0, "MA-M": 2, "MA-L": 0}
+    database = load_folder(tmp_path)
+    assert database is not None  # load_folder gives None only when no file is there at all
+    assert database.counts() == {"MA-S": 0, "MA-M": 2, "MA-L": 0}
 
 
 def test_parse_detects_the_block():

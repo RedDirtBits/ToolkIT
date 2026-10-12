@@ -43,7 +43,9 @@ def test_update_saves_all_three_files(tmp_path):
     counts = update_from_ieee(folder, fetch=fake_fetch)
     assert counts == {"MA-L": 8, "MA-M": 2, "MA-S": 1}
     assert sorted(p.name for p in folder.iterdir()) == ["mam.csv", "oui.csv", "oui36.csv"]
-    assert load_folder(folder).counts() == {"MA-S": 1, "MA-M": 2, "MA-L": 8}
+    database = load_folder(folder)
+    assert database is not None
+    assert database.counts() == {"MA-S": 1, "MA-M": 2, "MA-L": 8}
 
 
 def test_failed_download_keeps_the_old_files(tmp_path):
@@ -108,7 +110,9 @@ def test_import_detects_which_file_it_is(tmp_path):
 def test_import_replaces_an_older_copy(tmp_path):
     (tmp_path / "oui36.csv").write_text("old")
     import_file(tmp_path, (FIXTURES / "oui36.csv").read_bytes())
-    assert load_folder(tmp_path).counts()["MA-S"] == 1
+    database = load_folder(tmp_path)
+    assert database is not None
+    assert database.counts()["MA-S"] == 1
 
 
 @pytest.mark.parametrize(
