@@ -33,8 +33,11 @@ def generate(
 ):
     form = {"count": count, "mode": mode, "oui": oui, "style": style, "upper": upper}
     try:
+        number = parse_count(count, required=True)
+        # required=True raises FormError instead of returning None; this line tells mypy so.
+        assert number is not None
         lines = generate_formatted(
-            count=parse_count(count, required=True),
+            count=number,
             mode=mode,
             oui_text=oui,
             style=style,
