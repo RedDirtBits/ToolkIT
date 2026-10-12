@@ -200,11 +200,15 @@ pictures, in `GETTING-STARTED.html`.
 ## Known limitations
 
 - **IPv4 only** in the IP generator, subnet calculator and IP list cleanup.
-- **At most 65,534 items per request** (one full /16) in every tool, and 8 MB per form field. The IP
-  generator only fills networks of /16 to /30; /31 and /32 are refused there (the subnet calculator
-  does handle them).
+- **Size limits per request:** 65,534 addresses or lines (one full /16) in the IP and MAC
+  generators, MAC converter, OUI lookup, hostname faker and IP list cleanup; 65,536 subnets in a
+  subnet split; the VLAN list has no item limit of its own. Every form field is capped at 8 MB. The
+  IP generator only fills networks of /16 to /30; /31 and /32 are refused there (the subnet
+  calculator does handle them).
 - **Results tables show the first 500 rows** (OUI lookup and search, subnet splits); the output
   boxes, Copy and Download always have everything.
+- **Import reads at most 50 MB of a file**, but the web server first stores the whole upload in a
+  temporary file, whatever its size. Harmless on your own machine; just don't import huge files.
 - **The vendor list is only as fresh as the last Update.** It isn't refreshed automatically. Update
   works through a proxy that uses the system settings, but not one that needs a login or a setup
   script; use Import there.

@@ -84,8 +84,10 @@ nothing). import-linter isn't adopted.
   files are downloaded and validated before any is saved.
 - **Random networks never come from 10.0.0.0/8**: only 172.16.0.0/12 and 192.168.0.0/16
   (`ip_generator.py`). A network the user types is used as given.
-- **Every request is size-limited**: at most 65,534 items per tool, 8 MB per form field, 50 MB per
-  IEEE file. A typo like `1000000` gets a clear refusal instead of a hung page.
+- **Every request is size-limited**: 65,534 addresses or lines (IP and MAC generators, converter,
+  OUI lookup, hostname faker, IP list cleanup), 65,536 subnets in a split, 8 MB per form field
+  (the VLAN list relies on this one), 50 MB per IEEE file. A typo like `1000000` gets a clear
+  refusal instead of a hung page.
 - **Generated lists never repeat a value.**
 - **Tools take an optional `random.Random`**, so tests can seed it; normal use gets a fresh one.
 
@@ -250,7 +252,7 @@ below shape the design.
 - **Consequences:** departures from the standard (below) are recorded rather than fixed up front;
   the fresh review decides whether any needs fixing.
 
-### 2026-10-12: Known departures from the standard layout (recorded, not yet decided)
+### 2026-10-12: Known departures from the standard layout
 
 - **Folder names:** `web/routes/` and `tools/` instead of `routers/` and `services/`;
   `settings.py` instead of `core/config.py`. Same separation, different names.
@@ -266,7 +268,17 @@ below shape the design.
   decisions (what to say when) that can only be tested through the web layer.
 - **One limit, several copies:** 65,534 is defined separately in `settings.py` and in four tools;
   `MAX_TABLE_ROWS` in two routes.
-- Whether to rename or move any of this is for after the stage 4 review.
+- **Decided (2026-10-12, after the stage 4 review, `docs/reviews/2026-10-12-delivery.md`):**
+  - Folder names, no `repositories/`, plain constants, no `schemas/`: **kept**. The separation is
+    real (nothing in `tools/` imports web code); renaming would be churn with no behaviour gain,
+    and a settings class or schema folder would be a moving part with no user.
+  - Long route handlers: **kept** as presentation, except two rules that move into the tools (the
+    IP generator's "host bits cleared" check and IP list's "mostly single addresses" test).
+  - One limit, several copies: **to be fixed** in the review's fix pass: one `MAX_ITEMS` in
+    `app/tools/limits.py` (so tools still don't import web settings), `MAX_TABLE_ROWS` once in
+    `settings.py`.
+  - Putting all OUI disk access in one file (e.g. `oui_files.py`): **later idea**, not done in the
+    review's fix pass, so the fixes stay reviewable.
 
 ## Deliberately left out
 
