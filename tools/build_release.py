@@ -107,9 +107,12 @@ PTH_NEEDS_PARENT = True
 # and check the subnet calculator answers, without starting the server.
 SMOKE_TEST = [
     "-c",
-    "from app.main import create_app; create_app(); "
-    "from app.tools.subnet_calc import calculate; assert str(calculate('192.0.2.9/30').network) == '192.0.2.8/30'; "
-    "print('smoke test ok')",
+    # One Python command, split over three lines: the parentheses join them into one string.
+    (
+        "from app.main import create_app; create_app(); "
+        "from app.tools.subnet_calc import calculate; assert str(calculate('192.0.2.9/30').network) == '192.0.2.8/30'; "
+        "print('smoke test ok')"
+    ),
 ]
 
 # =============================================================================
