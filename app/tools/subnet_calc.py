@@ -214,10 +214,10 @@ def _read_size(text: str) -> int:
     if value == 0:
         return 32  # wildcard 0.0.0.0 = exactly one host (see the module docstring)
     if _is_contiguous_mask(value):
-        return bin(value).count("1")  # a mask's prefix = how many 1 bits it has
+        return value.bit_count()  # a mask's prefix = how many 1 bits it has
     inverted = value ^ 0xFFFFFFFF  # flip all 32 bits: a wildcard becomes its mask
     if _is_contiguous_mask(inverted):
-        return bin(inverted).count("1")
+        return inverted.bit_count()
     raise SubnetError(
         f"'{text}' isn't a subnet mask or wildcard: its bits aren't one solid run, so it doesn't "
         "describe a subnet."
