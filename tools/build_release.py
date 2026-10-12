@@ -85,6 +85,14 @@ DEV_PACKAGES = [
     "httpx2",
     "httpcore2",
     "truststore",  # httpx2 (FastAPI's test client)
+    # ruff + mypy (guardrails stage 1), from pip's dry-run report, 2026-10-12.
+    # NOT typing_extensions: mypy needs it, but so do pydantic and fastapi.
+    "ruff",
+    "mypy",
+    "mypy_extensions",
+    "pathspec",
+    "librt",
+    "ast_serialize",
 ]
 
 # Does the embedded Python's ._pth file need a ".." line to find the app?
