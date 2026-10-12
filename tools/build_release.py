@@ -252,8 +252,10 @@ def stage(files: list[tuple[Path, PurePosixPath]], release_dir: Path) -> None:
 def smoke_test(release_dir: Path) -> str:
     """Run the bundled Python from the staged release; return its output or raise."""
     python = release_dir / "python" / "python.exe"
+    # check=False: a failure shouldn't raise subprocess's own error; the exit code is checked
+    # below instead, so the message can include the smoke test's output.
     result = subprocess.run(
-        [str(python), *SMOKE_TEST], cwd=release_dir, capture_output=True, text=True, timeout=120
+        [str(python), *SMOKE_TEST], cwd=release_dir, capture_output=True, text=True, timeout=120, check=False
     )
     if result.returncode != 0:
         raise ReleaseError(f"smoke test failed (exit {result.returncode}):\n{result.stdout}{result.stderr}")
