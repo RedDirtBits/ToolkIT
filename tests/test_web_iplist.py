@@ -80,7 +80,11 @@ def test_input_is_escaped(client):
 
 @pytest.mark.parametrize(
     "kind, name",
-    [("iplist-summary", "ip-summary.txt"), ("iplist-sorted", "ip-sorted.txt"), ("iplist-original", "ip-unique.txt")],
+    [
+        ("iplist-summary", "ip-summary.txt"),
+        ("iplist-sorted", "ip-sorted.txt"),
+        ("iplist-original", "ip-unique.txt"),
+    ],
 )
 def test_download_names(client, kind, name):
     response = client.post("/download", data={"kind": kind, "content": "192.0.2.1"})

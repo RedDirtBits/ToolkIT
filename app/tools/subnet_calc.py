@@ -33,7 +33,7 @@ MAX_SUBNETS = 65_536
 # What kind of address it is, checked in this order (first match wins). The RFC numbers are where
 # each block is defined. 10.0.0.0/8 appears here only so it's recognised as private.
 _ADDRESS_TYPES = [
-    ("0.0.0.0/8", "\"This network\" (RFC 791): not a usable address"),
+    ("0.0.0.0/8", '"This network" (RFC 791): not a usable address'),
     ("127.0.0.0/8", "Loopback (RFC 1122)"),
     ("169.254.0.0/16", "Link-local (RFC 3927): self-assigned, no DHCP answer"),
     ("224.0.0.0/4", "Multicast (RFC 5771)"),
@@ -189,8 +189,7 @@ def split_network(
         raise SubnetError("Give a new prefix (e.g. /26) or a number of subnets (e.g. 8).")
     if not network.prefixlen < new_prefix <= 32:
         raise SubnetError(
-            f"To split {network}, the new prefix must be longer than /{network.prefixlen} "
-            "and at most /32."
+            f"To split {network}, the new prefix must be longer than /{network.prefixlen} and at most /32."
         )
     subnet_count = 2 ** (new_prefix - network.prefixlen)
     if subnet_count > MAX_SUBNETS:

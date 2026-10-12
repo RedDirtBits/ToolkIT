@@ -77,7 +77,11 @@ async def lookup(request: Request):
         ]
         for r in found[:MAX_TABLE_ROWS]
     ]
-    note = f"First {MAX_TABLE_ROWS:,} of {len(found):,} shown; the Vendors box has them all." if len(found) > MAX_TABLE_ROWS else ""
+    note = (
+        f"First {MAX_TABLE_ROWS:,} of {len(found):,} shown; the Vendors box has them all."
+        if len(found) > MAX_TABLE_ROWS
+        else ""
+    )
     table = Table(headers=["MAC", "Vendor", "Block", "Prefix"], rows=rows, note=note)
 
     blocks = []
@@ -120,7 +124,11 @@ async def search(request: Request):
     )
 
     rows = [[p, e.block, e.vendor] for p, e in zip(prefixes, matches)][:MAX_TABLE_ROWS]
-    note = f"First {MAX_TABLE_ROWS:,} of {len(matches):,} shown; the Prefixes box has them all." if len(matches) > MAX_TABLE_ROWS else ""
+    note = (
+        f"First {MAX_TABLE_ROWS:,} of {len(matches):,} shown; the Prefixes box has them all."
+        if len(matches) > MAX_TABLE_ROWS
+        else ""
+    )
     result = ToolResult(
         kind="oui_search",
         tab="oui",

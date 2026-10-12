@@ -92,10 +92,7 @@ def generate_macs(
     if mode == "local":
         # Free bits: 6 in the first byte (above L and M) + the 40 bits of the other five bytes.
         # Shift the top 6 free bits up past L and M, then set L. M stays 0.
-        return [
-            ((n >> 40) << 42) | _LOCAL_BIT | (n & _LOW_40_BITS)
-            for n in rng.sample(range(2**46), count)
-        ]
+        return [((n >> 40) << 42) | _LOCAL_BIT | (n & _LOW_40_BITS) for n in rng.sample(range(2**46), count)]
 
     # mode == "random": free bits: 7 in the first byte (everything but M) + 40 others.
     # Shift the top 7 free bits up past M, leaving M at 0.

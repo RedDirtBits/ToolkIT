@@ -41,7 +41,9 @@ def test_parse_item(text, expected):
     assert parse_item(text) == net(expected)
 
 
-@pytest.mark.parametrize("text", ["hello", "192.168.4", "192.168.4.300", "192.168.4.0/33", "192.168.4.0 255.0.255.0"])
+@pytest.mark.parametrize(
+    "text", ["hello", "192.168.4", "192.168.4.300", "192.168.4.0/33", "192.168.4.0 255.0.255.0"]
+)
 def test_parse_item_refuses_non_addresses(text):
     with pytest.raises(IPListError):
         parse_item(text)
@@ -53,7 +55,10 @@ def test_parse_item_refuses_non_addresses(text):
 def test_sorts_numerically_not_as_text():
     result = clean_up("192.168.4.10\n192.168.4.2\n192.168.4.100\n172.16.0.1")
     assert [format_item(n) for n in result.sorted] == [
-        "172.16.0.1", "192.168.4.2", "192.168.4.10", "192.168.4.100",
+        "172.16.0.1",
+        "192.168.4.2",
+        "192.168.4.10",
+        "192.168.4.100",
     ]
 
 
@@ -120,7 +125,9 @@ def test_too_many_lines_is_refused():
 
 
 def test_a_full_slash_16_summarizes_to_one_block():
-    text = "\n".join(str(ipaddress.IPv4Address(int(ipaddress.IPv4Address("172.20.0.0")) + n)) for n in range(65_534))
+    text = "\n".join(
+        str(ipaddress.IPv4Address(int(ipaddress.IPv4Address("172.20.0.0")) + n)) for n in range(65_534)
+    )
     result = clean_up(text)
     # 65,534 of the 65,536 addresses (no .255.254/.255.255): fewest exact blocks.
     assert result.covering == net("172.20.0.0/16")

@@ -188,6 +188,7 @@ def generate_ips(
 def format_ips(result: IPResult, style: str = "plain") -> list[str]:
     """Write each address as text in the chosen style.
 
+    Styles, with an example:
         plain   192.168.4.17
         prefix  192.168.4.17/22
         mask    192.168.4.17 255.255.252.0

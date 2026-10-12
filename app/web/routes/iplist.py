@@ -57,7 +57,7 @@ async def iplist(request: Request):
             f"Note: these are mostly single addresses, so the exact summary has {len(result.summary):,} "
             "small blocks: it never includes unused addresses, and gaps between your addresses "
             "can't be bridged. That's right for an ACL that must allow only these hosts. To see "
-            "the one network they sit in, use \"All fit in\" below."
+            'the one network they sit in, use "All fit in" below.'
         )
 
     details = []
@@ -68,9 +68,17 @@ async def iplist(request: Request):
         ]
 
     blocks = [
-        OutputBlock(download="iplist-summary", lines=summary_lines, title="Summarized for ACLs / prefix lists"),
-        OutputBlock(download="iplist-sorted", lines=[format_item(n) for n in result.sorted], title="Sorted, unique"),
-        OutputBlock(download="iplist-original", lines=[format_item(n) for n in result.original], title="Original order, unique"),
+        OutputBlock(
+            download="iplist-summary", lines=summary_lines, title="Summarized for ACLs / prefix lists"
+        ),
+        OutputBlock(
+            download="iplist-sorted", lines=[format_item(n) for n in result.sorted], title="Sorted, unique"
+        ),
+        OutputBlock(
+            download="iplist-original",
+            lines=[format_item(n) for n in result.original],
+            title="Original order, unique",
+        ),
     ]
     response = ToolResult(kind="iplist", summary=summary, warnings=warnings, details=details, blocks=blocks)
     return tool_response(request, response, form)

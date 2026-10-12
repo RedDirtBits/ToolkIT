@@ -42,16 +42,16 @@ from pathlib import Path, PurePosixPath
 # (Filled in for ToolkIT from the shared release-build template.)
 # =============================================================================
 
-APP_NAME = "ToolkIT"          # folder name inside the zip, and the zip's name
+APP_NAME = "ToolkIT"  # folder name inside the zip, and the zip's name
 
 # Files and folders (relative to the project root) that go into the release.
 # Folders are included with everything inside them, minus SKIP_NAMES below.
 # Only list what a colleague needs to RUN the app.
 INCLUDE = [
-    "app",                    # the application package
-    "python",                 # the embedded Python, with the app's packages installed
-    "run.bat",                # the launcher
-    "GETTING-STARTED.html",   # the colleague guide
+    "app",  # the application package
+    "python",  # the embedded Python, with the app's packages installed
+    "run.bat",  # the launcher
+    "GETTING-STARTED.html",  # the colleague guide
     # Nothing else: ToolkIT has no config or input files. data/ (the IEEE vendor
     # list) stays out on purpose: each colleague downloads it with the OUI tab's
     # Update button, and the app creates data/oui/ itself when they do.
@@ -77,8 +77,14 @@ REQUIRED = ["run.bat", "python/python.exe", "app/__main__.py", "GETTING-STARTED.
 # needed by fastapi, uvicorn, jinja2, python-multipart or pydantic. colorama is
 # kept (tiny; uvicorn's console colours on Windows).
 DEV_PACKAGES = [
-    "pytest", "pluggy", "iniconfig", "packaging", "pygments",   # pytest
-    "httpx2", "httpcore2", "truststore",                         # httpx2 (FastAPI's test client)
+    "pytest",
+    "pluggy",
+    "iniconfig",
+    "packaging",
+    "pygments",  # pytest
+    "httpx2",
+    "httpcore2",
+    "truststore",  # httpx2 (FastAPI's test client)
 ]
 
 # Does the embedded Python's ._pth file need a ".." line to find the app?
@@ -118,10 +124,20 @@ SKIP_SUFFIXES = {".pyc", ".pyo"}
 # python/ legitimately contain folders named "data" or "tests"). Patterns are
 # matched against each part of the path inside the release.
 FORBIDDEN_PATTERNS = [
-    "*.csv",            # inventories and exports
-    "metadata.json",    # collected output's records
-    ".env", "*.key", "*.pem", "id_rsa*", "id_ed25519*",   # secrets
-    ".git", "tests", "scratch", "data", "docs", "CLAUDE.md", "LEARNING.md",
+    "*.csv",  # inventories and exports
+    "metadata.json",  # collected output's records
+    ".env",
+    "*.key",
+    "*.pem",
+    "id_rsa*",
+    "id_ed25519*",  # secrets
+    ".git",
+    "tests",
+    "scratch",
+    "data",
+    "docs",
+    "CLAUDE.md",
+    "LEARNING.md",
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -153,7 +169,7 @@ def dev_package_files(python_dir: Path, packages: list[str]) -> set[Path]:
                 relative = line.split(",")[0]
                 if relative:
                     skip.add((site_packages / relative).resolve())
-        skip.add(info.resolve())   # the .dist-info folder itself
+        skip.add(info.resolve())  # the .dist-info folder itself
     return skip
 
 
@@ -171,7 +187,7 @@ def collect_files(root: Path) -> list[tuple[Path, PurePosixPath]]:
     for entry in INCLUDE:
         source = root / entry
         if not source.exists():
-            continue   # Reported by check_release() if it's REQUIRED.
+            continue  # Reported by check_release() if it's REQUIRED.
         if source.is_file():
             files.append((source, PurePosixPath(entry)))
             continue
@@ -194,7 +210,7 @@ def check_release(root: Path, files: list[tuple[Path, PurePosixPath]]) -> list[s
     for inside in sorted(names):
         parts = PurePosixPath(inside).parts
         if parts[0] == "python":
-            continue   # Inside the bundled Python, package contents are fine.
+            continue  # Inside the bundled Python, package contents are fine.
         for part in parts:
             if any(fnmatch.fnmatch(part, pattern) for pattern in FORBIDDEN_PATTERNS):
                 problems.append(f"forbidden file would be included: {inside} (matches '{part}')")
@@ -294,7 +310,10 @@ def summary(files: list[tuple[Path, PurePosixPath]]) -> str:
         count_size = totals.setdefault(top, [0, 0])
         count_size[0] += 1
         count_size[1] += source.stat().st_size
-    lines = [f"  {top:<24} {count:>6} files  {size / 1_048_576:8.1f} MB" for top, (count, size) in sorted(totals.items())]
+    lines = [
+        f"  {top:<24} {count:>6} files  {size / 1_048_576:8.1f} MB"
+        for top, (count, size) in sorted(totals.items())
+    ]
     lines += [f"  {folder + '/':<24} {'(empty, with README.txt)':>28}" for folder in EMPTY_FOLDERS]
     return "\n".join(lines)
 

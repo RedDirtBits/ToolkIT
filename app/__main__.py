@@ -25,7 +25,9 @@ def main() -> None:
 
     # Safety net: refuse to listen on anything but the laptop itself.
     if settings.HOST not in ("127.0.0.1", "localhost"):
-        raise SystemExit(f"Refusing to start: HOST must be 127.0.0.1, not {settings.HOST!r} (see settings.py).")
+        raise SystemExit(
+            f"Refusing to start: HOST must be 127.0.0.1, not {settings.HOST!r} (see settings.py)."
+        )
 
     url = f"http://{settings.HOST}:{settings.PORT}/"
     print(f"{settings.APP_NAME} is starting at {url}  (Ctrl+C to stop)")

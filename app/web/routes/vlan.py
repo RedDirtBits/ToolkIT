@@ -39,9 +39,7 @@ async def vlan(request: Request):
     if result.invalid:
         summary += f", {len(result.invalid):,} item{'s' if len(result.invalid) != 1 else ''} skipped"
 
-    warnings = cap_warnings(
-        [f"Skipped '{text}': {reason}" for text, reason in result.invalid]
-    )
+    warnings = cap_warnings([f"Skipped '{text}': {reason}" for text, reason in result.invalid])
     if result.invalid and not result.vlans:
         warnings.append(f"Nothing valid found. VLANs are numbers from {MIN_VLAN} to {MAX_VLAN}.")
 

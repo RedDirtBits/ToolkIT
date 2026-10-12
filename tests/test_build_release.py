@@ -44,9 +44,9 @@ def project(tmp_path):
     # Everything the settings say a release needs.
     for entry in br.INCLUDE:
         target = root / entry
-        if "." in entry:               # looks like a file
+        if "." in entry:  # looks like a file
             write(target, "x\n")
-        else:                          # a folder: give it one file
+        else:  # a folder: give it one file
             write(target / "placeholder.txt", "x\n")
     for required in br.REQUIRED:
         if not (root / required).exists():
@@ -55,9 +55,11 @@ def project(tmp_path):
     fake_python_exe(root / "python" / "python.exe")
     write(root / "python" / "python314._pth", "python314.zip\n.\n..\nimport site\n")
     site = root / "python" / "Lib" / "site-packages"
-    write(site / "somepkg" / "data" / "table.csv", "a,b\n")       # package data: allowed
-    write(site / "_pytest" / "__init__.py")                         # dev package: left out
-    write(site / "pytest-8.3.0.dist-info" / "RECORD", "_pytest/__init__.py,,\npytest-8.3.0.dist-info/RECORD,,\n")
+    write(site / "somepkg" / "data" / "table.csv", "a,b\n")  # package data: allowed
+    write(site / "_pytest" / "__init__.py")  # dev package: left out
+    write(
+        site / "pytest-8.3.0.dist-info" / "RECORD", "_pytest/__init__.py,,\npytest-8.3.0.dist-info/RECORD,,\n"
+    )
     # Things that must NEVER ship.
     write(root / "data" / "output" / "x" / "metadata.json", "{}")
     write(root / "real_export.csv", "real,data\n")
@@ -146,16 +148,26 @@ def test_toolkit_release_is_just_the_app_python_launcher_and_guide(project):
 
 def test_vendor_list_never_ships_even_when_downloaded(project):
     # The build machine has a downloaded IEEE list; colleagues fetch their own with Update.
-    write(project / "data" / "oui" / "oui.csv", "Registry,Assignment,Organization Name,Organization Address\n")
+    write(
+        project / "data" / "oui" / "oui.csv", "Registry,Assignment,Organization Name,Organization Address\n"
+    )
     names = names_in(br.build(project, run_smoke_test=False, today=TODAY))
     assert not any("/data/" in name or name.endswith(".csv") for name in names if "/python/" not in name)
 
 
 def test_test_packages_dropped_app_packages_and_colorama_kept(project):
     site = project / "python" / "Lib" / "site-packages"
-    for package, folder in [("httpx2", "httpx2"), ("truststore", "truststore"), ("colorama", "colorama"), ("anyio", "anyio")]:
+    for package, folder in [
+        ("httpx2", "httpx2"),
+        ("truststore", "truststore"),
+        ("colorama", "colorama"),
+        ("anyio", "anyio"),
+    ]:
         write(site / folder / "__init__.py")
-        write(site / f"{package}-1.0.dist-info" / "RECORD", f"{folder}/__init__.py,,\n{package}-1.0.dist-info/RECORD,,\n")
+        write(
+            site / f"{package}-1.0.dist-info" / "RECORD",
+            f"{folder}/__init__.py,,\n{package}-1.0.dist-info/RECORD,,\n",
+        )
     names = names_in(br.build(project, run_smoke_test=False, today=TODAY))
     inside = f"{APP}/python/Lib/site-packages/"
     assert f"{inside}colorama/__init__.py" in names and f"{inside}anyio/__init__.py" in names

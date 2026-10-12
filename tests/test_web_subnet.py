@@ -18,7 +18,9 @@ def client(tmp_path):
 
 def details(html: str) -> dict[str, str]:
     """The label -> value rows of the result, as shown on the page."""
-    pairs = re.findall(r'<th scope="row">(.*?)</th>\s*<td><span id="[^"]+" class="detail-value">(.*?)</span>', html)
+    pairs = re.findall(
+        r'<th scope="row">(.*?)</th>\s*<td><span id="[^"]+" class="detail-value">(.*?)</span>', html
+    )
     return dict(pairs)
 
 
@@ -51,7 +53,9 @@ def test_split_by_prefix(client):
     data = {"address": "192.168.4.0/24", "split": "/26"}
     response = client.post("/subnet", data=data, headers=HTMX)
     assert "split into 4 × /26" in response.text
-    assert "<td>192.168.4.64/26</td><td>192.168.4.65 – 192.168.4.126</td><td>192.168.4.127</td>" in response.text
+    assert (
+        "<td>192.168.4.64/26</td><td>192.168.4.65 – 192.168.4.126</td><td>192.168.4.127</td>" in response.text
+    )
     box = response.text[response.text.index('id="subnets-output"') :]
     body = box[box.index(">") + 1 : box.index("</textarea>")].removeprefix("\n")
     assert body.split("\n") == [f"192.168.4.{n}/26" for n in (0, 64, 128, 192)]

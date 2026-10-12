@@ -60,7 +60,11 @@ def test_input_is_escaped(client):
 
 @pytest.mark.parametrize(
     "kind, name",
-    [("vlan-compressed", "vlans-compressed.txt"), ("vlan-expanded", "vlans.txt"), ("vlan-free", "vlans-free.txt")],
+    [
+        ("vlan-compressed", "vlans-compressed.txt"),
+        ("vlan-expanded", "vlans.txt"),
+        ("vlan-free", "vlans-free.txt"),
+    ],
 )
 def test_download_names(client, kind, name):
     response = client.post("/download", data={"kind": kind, "content": "10"})
@@ -80,4 +84,7 @@ def test_compressed_view_wraps_only_after_commas(client):
 def test_wrap_after_commas_escapes_each_item():
     from app.web.templating import wrap_after_commas
 
-    assert str(wrap_after_commas("<b>,7")) == '<span class="nowrap">&lt;b&gt;</span>,<wbr><span class="nowrap">7</span>'
+    assert (
+        str(wrap_after_commas("<b>,7"))
+        == '<span class="nowrap">&lt;b&gt;</span>,<wbr><span class="nowrap">7</span>'
+    )

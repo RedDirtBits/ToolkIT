@@ -201,7 +201,11 @@ def test_converter_form_has_no_format_dropdown(client):
 
 @pytest.mark.parametrize(
     "kind, file_name",
-    [("convert-colon", "mac-colon.txt"), ("convert-hyphen", "mac-hyphen.txt"), ("convert-dotted", "mac-dotted.txt")],
+    [
+        ("convert-colon", "mac-colon.txt"),
+        ("convert-hyphen", "mac-hyphen.txt"),
+        ("convert-dotted", "mac-dotted.txt"),
+    ],
 )
 def test_converter_download_names(client, kind, file_name):
     response = client.post("/download", data={"kind": kind, "content": "02:1a:2b:3c:4d:5e"})

@@ -129,9 +129,7 @@ def fake_hostnames(
     # Everything real in the paste, lowercase: whole names (to spot a fake that equals one) and
     # letter/digit pieces (which fake pieces try to avoid).
     real_names = {line.lower() for line in lines if line}
-    real_pieces = {
-        piece for name in real_names for piece in split_pieces(name) if not _is_separator(piece)
-    }
+    real_pieces = {piece for name in real_names for piece in split_pieces(name) if not _is_separator(piece)}
     piece_map = _PieceMap(keep_words, real_pieces, rng)
 
     result = FakeResult()

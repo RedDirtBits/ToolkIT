@@ -25,18 +25,17 @@ def seeded() -> random.Random:
 
 def shape(hostname: str) -> str:
     """Reduce a hostname to its shape: a = letter, 9 = digit, separators as-is."""
-    return "".join(
-        "a" if c in string.ascii_letters else "9" if c in string.digits else c for c in hostname
-    )
+    return "".join("a" if c in string.ascii_letters else "9" if c in string.digits else c for c in hostname)
 
 
 # --- split_pieces --------------------------------------------------------------------------------
 
 
 def test_split_at_separators_and_letter_digit_changes():
+    # Kept on one line on purpose, so it reads like the name being cut up.
     assert split_pieces("exsite-wing-bld01a-cor-01") == [
         "exsite", "-", "wing", "-", "bld", "01", "a", "-", "cor", "-", "01",
-    ]
+    ]  # fmt: skip
 
 
 def test_split_without_separators():
