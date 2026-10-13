@@ -53,7 +53,9 @@ def test_counts_items():
         ("10000", "outside 1-4094"),  # five digits: still read, then refused by value
         ("123456", "not a VLAN number or range"),  # six or more digits: never converted
         ("10-123456", "not a VLAN number or range"),
-        ("9" * 5000, "not a VLAN number or range"),  # past int()'s 4,300-digit limit
+        # Past int()'s 4,300-digit limit. Short id: the test name would otherwise hold all 5,000
+        # digits (see test_oui_data.py, "unclosed-quote", for why long test names break on Windows).
+        pytest.param("9" * 5000, "not a VLAN number or range", id="5000-digits"),
     ],
 )
 def test_invalid_items_are_reported_not_dropped(item, reason):

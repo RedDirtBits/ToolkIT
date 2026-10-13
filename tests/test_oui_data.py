@@ -66,7 +66,10 @@ def test_parse_accepts_a_bom_and_crlf():
         (HEADER + "MA-L,001A2,X,\n", "isn't a 6-digit MA-L prefix"),
         (HEADER + "MA-L\n", "too few columns"),
         # A quote that's never closed: the csv module's own error, reported like the others.
-        (HEADER + 'MA-L,001A2B,"' + "x" * 200_000, "isn't a readable CSV"),
+        # Given a short id: pytest otherwise names the test after its parameters, puts that name
+        # in the PYTEST_CURRENT_TEST environment variable, and Windows refuses a variable over
+        # 32,767 characters (this text is 200,000).
+        pytest.param(HEADER + 'MA-L,001A2B,"' + "x" * 200_000, "isn't a readable CSV", id="unclosed-quote"),
     ],
 )
 def test_parse_refuses_files_that_are_not_registries(text, message):
