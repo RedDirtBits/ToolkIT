@@ -97,6 +97,11 @@ def test_ip_host_bits_note(client):
         ({"network": "192.168.4.0/31"}, "/31 or /32"),
         ({}, "Give a count"),
         ({"count": "70000"}, "at most 65,534"),
+        # Six digits still reach the tool (its own limit message); seven or more are refused first.
+        ({"count": "999999"}, "at most 65,534"),
+        ({"count": "1000000"}, "far too large"),
+        # Longer than Python's 4,300-digit int() limit: must be a message, not a 500.
+        ({"count": "9" * 5000}, "far too large"),
     ],
 )
 def test_ip_errors_are_shown(client, data, message):
@@ -150,10 +155,12 @@ def test_mac_oui_dotted_upper(client):
         ({"count": "5", "mode": "oui", "oui": "zz"}, "OUI prefix"),
         ({"count": "5", "mode": "oui", "oui": "01:00:5e"}, "multicast"),
         ({"count": "5", "style": "bare"}, "Unknown MAC format"),
+        ({"count": "9" * 5000}, "far too large"),  # past int()'s 4,300-digit limit
     ],
 )
 def test_mac_errors_are_shown(client, data, message):
     response = client.post("/mac", data=data, headers=HTMX)
+    assert response.status_code == 200
     assert 'class="flash bad"' in response.text
     assert message in response.text
 

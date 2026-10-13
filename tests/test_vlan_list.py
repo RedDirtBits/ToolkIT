@@ -50,6 +50,10 @@ def test_counts_items():
         ("1/7/1", "not a VLAN number or range"),
         ("10-", "not a VLAN number or range"),
         ("abc10", "not a VLAN number or range"),
+        ("10000", "outside 1-4094"),  # five digits: still read, then refused by value
+        ("123456", "not a VLAN number or range"),  # six or more digits: never converted
+        ("10-123456", "not a VLAN number or range"),
+        ("9" * 5000, "not a VLAN number or range"),  # past int()'s 4,300-digit limit
     ],
 )
 def test_invalid_items_are_reported_not_dropped(item, reason):

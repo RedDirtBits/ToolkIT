@@ -29,7 +29,11 @@ MAX_VLAN = 4094
 
 # An item: one number, or two numbers joined by a dash (spaces around the dash are tidied away
 # before splitting, see parse_vlans()).
-_ITEM = re.compile(r"(\d+)(?:-(\d+))?")
+# At most 5 digits per number: enough for anything near 4094 ("04094", "10000" is still read and
+# reported as "outside 1-4094"), and it keeps a mis-pasted 5,000-digit number away from int(),
+# which refuses strings over 4,300 digits with a ValueError. Longer numbers don't match, so they're
+# reported as "not a VLAN number or range" like any other junk.
+_ITEM = re.compile(r"(\d{1,5})(?:-(\d{1,5}))?")
 
 
 class VLANListError(ValueError):

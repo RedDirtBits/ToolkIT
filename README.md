@@ -202,6 +202,8 @@ pictures, in `GETTING-STARTED.html`.
 | "The vendor list in ... couldn't be read" | A file in `data/oui/` is locked, damaged or not an IEEE list | Click **Update from IEEE** (or Import) to replace it |
 | "Couldn't save ... in ..." on Update or Import | The folder is read-only, the disk is full, or antivirus holds the file | Move ToolkIT to a folder you can write to (e.g. Documents), or try again |
 | A count or paste is refused as too large | Over the 65,534-item limit (see below) | Split the request into parts |
+| "Something went wrong (HTTP 500)" under a form | An unexpected error in ToolkIT (a bug) | The console window shows the details; try again, restart if it repeats, and report it with the input that caused it |
+| "ToolkIT didn't answer" under a form | The app isn't running (console closed) | Start it again |
 
 ## Known limitations
 

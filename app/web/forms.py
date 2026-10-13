@@ -30,8 +30,26 @@ def parse_count(text: str, required: bool = False) -> int | None:
     # isdigit() also accepts characters like "²" that int() can't read.
     # (A count of 0 passes here, and the tool itself refuses it.)
     if not (cleaned.isascii() and cleaned.isdigit()):
-        raise FormError(f"'{text.strip()}' isn't a whole number.")
+        raise FormError(f"'{_shorten(text.strip())}' isn't a whole number.")
+    # Check the LENGTH before converting. Python refuses to turn a string of
+    # more than 4,300 digits into an int (a safety limit since 3.11) and raises
+    # a plain ValueError, which the routes don't catch: the page would freeze
+    # on a mis-paste. No tool accepts more than 65,534, so anything past six
+    # digits is too large anyway; the tool refuses 6-digit counts with its own
+    # message ("at most 65,534 at a time").
+    if len(cleaned) > _MAX_COUNT_DIGITS:
+        raise FormError(f"'{_shorten(cleaned)}' is far too large for a count.")
     return int(cleaned)
+
+
+# Six digits = up to 999,999: comfortably above every tool's limit, far below
+# the length where int() gives up.
+_MAX_COUNT_DIGITS = 6
+
+
+def _shorten(text: str, limit: int = 20) -> str:
+    """Cut a long value for an error message: a 5,000-digit paste isn't worth echoing in full."""
+    return text if len(text) <= limit else text[:limit] + "…"
 
 
 def is_checked(value: str) -> bool:

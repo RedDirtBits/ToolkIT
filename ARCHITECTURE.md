@@ -57,7 +57,7 @@ ToolkIT/
 │       ├── oui_state.py     # the OUI list in memory: loaded on first use, reloaded after Update/Import
 │       ├── routes/          # one router per tab: pages, ip, subnet, iplist, vlan, mac, convert, hosts, oui; plus download
 │       ├── templates/       # base.html, index.html (all tabs), _result.html, _oui_status.html, _mac_format_fields.html
-│       └── static/          # style.css (UI kit + ToolkIT section), htmx.min.js (vendored), app.js (Copy, Clear)
+│       └── static/          # style.css (UI kit + ToolkIT section), htmx.min.js (vendored), app.js (Copy, Clear, error messages)
 ├── tests/                   # pytest; fixtures/ieee/ holds small invented registry files
 ├── tools/build_release.py   # builds the colleague zip (allowlist, smoke test); not part of the app
 ├── run.bat, build_release.bat, GETTING-STARTED.html
@@ -190,6 +190,16 @@ settings: credentials or secrets (there are none).
   not an IEEE list) or that vanished while the app runs become a status on the OUI tab ("couldn't
   be read: reason; Update or Import"), never an exception. The other tabs don't depend on the
   vendor list, so they must keep working when it's broken (review finding 1, 2026-10-12).
+- **Unexpected errors** (a bug: HTTP 500, or the app not answering at all) are caught in the
+  browser, not on the server: `app.js` listens for htmx's `htmx:responseError` and `htmx:sendError`
+  and shows a plain-text message in the result area (or at the top of the OUI list panel, keeping
+  its buttons). Without it, htmx ignores a failed request and the button just seems dead. One
+  safety net in the browser covers "the app stopped" too, which a server-side handler couldn't
+  (review finding 4, 2026-10-12).
+- **Numbers are length-checked before `int()`**: Python refuses digit strings over 4,300 long with
+  a plain `ValueError` the routes don't catch. Counts over 6 digits are refused as "far too large"
+  (`web/forms.py`); VLAN items over 5 digits don't match the item pattern and are listed as skipped
+  (review finding 3, 2026-10-12). The subnet and IP list patterns already capped their digits.
 
 ## Testing strategy
 
@@ -199,8 +209,10 @@ settings: credentials or secrets (there are none).
 | OUI download | A fake fetcher passed in (dependency injection); no test touches the network |
 | web | FastAPI `TestClient` against `create_app(allowed_hosts={"testserver"}, oui_state=...)` with a fake OUI folder |
 | release build | `tests/test_build_release.py` checks the allowlist settings; the build's own smoke test runs on Windows |
+| browser (`app.js`) | No automated tests (no JavaScript test tools, on purpose). Checked by hand in a browser, or in headless Firefox with a scratch page that fires the events itself |
 
-416 tests on Linux (Python 3.12); 404 on Windows (3.14), where the release-build tests are skipped.
+433 tests on Linux (Python 3.12, 2026-10-12); on Windows (3.14) the release-build tests are
+skipped (404 when last run there, before the stage 4 fixes).
 All test data is invented (documentation ranges, made-up hostnames and vendors).
 
 **Coverage:** not measured yet (guardrail stage 2 not adopted).
@@ -293,7 +305,7 @@ below shape the design.
 ## Deliberately left out
 
 - **No database:** nothing is stored except IEEE's public files.
-- **No JavaScript framework or build step:** htmx (vendored) and ~60 lines of `app.js`.
+- **No JavaScript framework or build step:** htmx (vendored) and ~100 lines of `app.js`.
 - **No user accounts or logins:** one user, on their own machine, listening on localhost only.
 - **No IPv6** in the calculators: not needed yet.
 - **No reading of IPs/VLANs out of free text** (configs, `show` output): a different tool.

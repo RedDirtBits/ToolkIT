@@ -37,6 +37,15 @@ def test_skipped_items_are_listed(client):
     assert "Skipped &#39;5000&#39;: outside 1-4094" in response.text
 
 
+def test_a_huge_number_is_skipped_not_a_crash(client):
+    # 5,000 digits is past Python's int() limit (4,300): before the fix this was a 500.
+    response = client.post("/vlan", data={"vlans": "7 " + "9" * 5000 + " 8"}, headers=HTMX)
+    assert response.status_code == 200
+    assert box(response.text, "vlan-compressed") == ["7-8"]
+    assert "1 item skipped" in response.text
+    assert "not a VLAN number or range" in response.text
+
+
 def test_nothing_valid(client):
     response = client.post("/vlan", data={"vlans": "trunk smlt"}, headers=HTMX)
     assert "Nothing valid found" in response.text

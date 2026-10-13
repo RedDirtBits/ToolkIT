@@ -61,3 +61,43 @@ document.addEventListener("keydown", (event) => {
   event.preventDefault();
   box.form.requestSubmit();
 });
+
+// Safety net for errors. Each tool reports the problems it expects (a bad
+// count, a missing file) as a normal result with a message. Anything else, an
+// unexpected bug (HTTP 500) or the app not answering at all (its console
+// window was closed), would otherwise do nothing visible: htmx only swaps in
+// successful responses, so the button would just seem dead. These two htmx
+// events fire in exactly those cases; we show a message where the result
+// would have gone instead.
+//   htmx:responseError  the app answered, but with an error status (4xx/5xx)
+//   htmx:sendError      no answer at all (app stopped, connection refused)
+function showRequestError(target, message) {
+  if (!target) return;
+  const flash = document.createElement("div");
+  flash.className = "flash bad request-error";
+  // textContent, never innerHTML: the message is shown as plain text.
+  flash.textContent = message;
+  if (target.classList.contains("result")) {
+    // A tool's result area: replace whatever was there (an old result).
+    target.replaceChildren(flash);
+  } else {
+    // Anything else (the OUI list panel, whose buttons must stay usable):
+    // put the message at the top, replacing an earlier one if there is one.
+    const old = target.querySelector(":scope > .request-error");
+    if (old) old.remove();
+    target.prepend(flash);
+  }
+}
+
+document.addEventListener("htmx:responseError", (event) => {
+  const status = event.detail.xhr.status;
+  showRequestError(event.detail.target,
+    `Something went wrong (HTTP ${status}). The details are in ToolkIT's console window. ` +
+    "Try again; if it keeps happening, restart ToolkIT.");
+});
+
+document.addEventListener("htmx:sendError", (event) => {
+  showRequestError(event.detail.target,
+    "ToolkIT didn't answer. Is its console window still open? If not, start it again " +
+    "(run.bat, or python -m app).");
+});
