@@ -9,7 +9,7 @@ cd /d "%~dp0"
 
 if not exist "python\python.exe" (
     echo Embedded Python was not found at "%~dp0python\python.exe".
-    echo See "Quick start" in README.md.
+    echo The folder looks incomplete: see "If something goes wrong" in GETTING-STARTED.html.
     pause
     exit /b 1
 )

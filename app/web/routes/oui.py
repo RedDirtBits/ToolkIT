@@ -21,6 +21,7 @@ from fastapi import APIRouter, Request
 from starlette.datastructures import UploadFile
 
 from app import settings
+from app.tools.limits import MAX_ITEMS
 from app.tools.oui_data import OUIDataError, lookup_lines
 from app.tools.oui_update import MAX_FILE_BYTES, OUIUpdateError, import_file, update_from_ieee
 from app.web.forms import is_checked, read_large_form
@@ -28,10 +29,6 @@ from app.web.responses import OutputBlock, Table, ToolResult, tool_response
 from app.web.templating import render
 
 router = APIRouter()
-
-# A table with tens of thousands of rows would make the page crawl. Show this many; the output
-# box below it (for Copy/Download) always has every line.
-MAX_TABLE_ROWS = 500
 
 NO_LIST = "There's no vendor list yet. Click Update below to download it from IEEE (or Import a file)."
 
@@ -52,8 +49,8 @@ async def lookup(request: Request):
         return refuse(request.app.state.oui.error or NO_LIST)
     if not macs.strip():
         return refuse("Type or paste a MAC address (or a prefix like 00:1a:2b).")
-    if len(macs.splitlines()) > settings.MAX_CONVERT_LINES:
-        return refuse(f"That's more than {settings.MAX_CONVERT_LINES:,} lines; look them up in parts.")
+    if len(macs.splitlines()) > MAX_ITEMS:
+        return refuse(f"That's more than {MAX_ITEMS:,} lines; look them up in parts.")
 
     results = lookup_lines(macs, db)
     found = [r for r in results if r is not None]
@@ -76,11 +73,11 @@ async def lookup(request: Request):
             r.assignment.block if r.assignment else "",
             r.assignment.format_prefix() if r.assignment else "",
         ]
-        for r in found[:MAX_TABLE_ROWS]
+        for r in found[: settings.MAX_TABLE_ROWS]
     ]
     note = (
-        f"First {MAX_TABLE_ROWS:,} of {len(found):,} shown; the Vendors box has them all."
-        if len(found) > MAX_TABLE_ROWS
+        f"First {settings.MAX_TABLE_ROWS:,} of {len(found):,} shown; the Vendors box has them all."
+        if len(found) > settings.MAX_TABLE_ROWS
         else ""
     )
     table = Table(headers=["MAC", "Vendor", "Block", "Prefix"], rows=rows, note=note)
@@ -125,10 +122,10 @@ async def search(request: Request):
         f"{len(names):,} matching vendor {_plural(len(names), 'name')}"
     )
 
-    rows = [[p, e.block, e.vendor] for p, e in zip(prefixes, matches)][:MAX_TABLE_ROWS]
+    rows = [[p, e.block, e.vendor] for p, e in zip(prefixes, matches)][: settings.MAX_TABLE_ROWS]
     note = (
-        f"First {MAX_TABLE_ROWS:,} of {len(matches):,} shown; the Prefixes box has them all."
-        if len(matches) > MAX_TABLE_ROWS
+        f"First {settings.MAX_TABLE_ROWS:,} of {len(matches):,} shown; the Prefixes box has them all."
+        if len(matches) > settings.MAX_TABLE_ROWS
         else ""
     )
     result = ToolResult(

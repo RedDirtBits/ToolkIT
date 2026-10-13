@@ -281,6 +281,9 @@ ToolkIT/
   need; everything else is normal text.
 - **Not in the repository, on purpose:** `python/` (the Windows embedded Python, ~50 MB of downloads),
   `data/` (each user's copy of the IEEE list), `scratch/` (throwaway experiments) and my local notes.
+- **Package versions are pinned** (`==` in `requirements.txt`, matching the bundled `python/`), so
+  two release builds from one commit are the same. To upgrade: change the version, reinstall into
+  `python/`, run the tests (on Windows too), commit.
 - Server-rendered pages with htmx (vendored, so it works offline); no JavaScript framework and no
   build step. The forms also work with JavaScript turned off (only the Copy buttons need it).
 

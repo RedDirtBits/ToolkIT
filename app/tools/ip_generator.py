@@ -12,7 +12,7 @@ Three ways to ask for addresses:
 Rules that apply everywhere:
 - Never return the network or broadcast address, and never repeat an address.
 - /31 and /32 are refused (they have no "usable hosts" in the normal sense).
-- At most MAX_COUNT addresses per request (one full /16), so a typo can't hang the app.
+- At most MAX_ITEMS addresses per request (one full /16), so a typo can't hang the app.
 - Random blocks come from 172.16.0.0/12 and 192.168.0.0/16 only. 10.0.0.0/8 is deliberately left
   out: it's the most widely used internal range, so fakes from it could pass for real addresses.
   (A network the user types in explicitly is used as given, even if it's in 10/8.)
@@ -26,11 +26,10 @@ import ipaddress
 import random
 from dataclasses import dataclass
 
-# The most addresses one request may produce: the usable hosts of a /16 (65,536 - 2).
-MAX_COUNT = 65_534
+from app.tools.limits import MAX_ITEMS
 
 # The smallest and largest prefixes we'll build or fill.
-# /16 is the biggest subnet whose usable hosts fit within MAX_COUNT; /30 is the smallest subnet that
+# /16 is the biggest subnet whose usable hosts fit within MAX_ITEMS; /30 is the smallest subnet that
 # still has a network and broadcast address to skip (2 usable hosts).
 MIN_PREFIX = 16
 MAX_PREFIX = 30
@@ -72,7 +71,31 @@ def parse_target(text: str) -> ipaddress.IPv4Network | ipaddress.IPv4Address | N
         "172.20.0.0"                    -> starting address (the subnet size comes from the count)
 
     Host bits are allowed and cleared: "192.168.5.9/22" means 192.168.4.0/22. That's what an engineer
-    pasting an interface address usually means.
+    pasting an interface address usually means. host_bits_cleared() says whether that happened.
+    """
+    typed = _read_target(text)
+    if isinstance(typed, ipaddress.IPv4Interface):
+        # The interface's network is the typed address with its host bits cleared.
+        return typed.network
+    return typed
+
+
+def host_bits_cleared(text: str) -> bool:
+    """True if `text` is a network typed with host bits set, e.g. "192.168.5.9/22".
+
+    parse_target() turns that into 192.168.4.0/22; the page uses this to say "rounded down from".
+    Raises IPGeneratorError for text parse_target() would refuse.
+    """
+    typed = _read_target(text)
+    return isinstance(typed, ipaddress.IPv4Interface) and typed.ip != typed.network.network_address
+
+
+def _read_target(text: str) -> ipaddress.IPv4Interface | ipaddress.IPv4Address | None:
+    """Read the "network" box exactly as typed (the one parser behind the two functions above).
+
+    A network comes back as an IPv4Interface, which keeps BOTH the address as typed (.ip) and its
+    network (.network), so nothing about the input is lost: like a parcel label that keeps the full
+    street address as well as the postcode.
     """
     text = text.strip()
     if not text:
@@ -88,8 +111,9 @@ def parse_target(text: str) -> ipaddress.IPv4Network | ipaddress.IPv4Address | N
 
     try:
         if "/" in text:
-            # strict=False clears host bits instead of raising an error (see the docstring).
-            return ipaddress.IPv4Network(text, strict=False)
+            # IPv4Interface accepts host bits (unlike IPv4Network without strict=False), and a
+            # prefix length, a mask or a wildcard after the slash, just as IPv4Network does.
+            return ipaddress.IPv4Interface(text)
         return ipaddress.IPv4Address(text)
     except ValueError:
         # ipaddress's own messages are fine for programmers but not friendly; replace them.
@@ -109,7 +133,7 @@ def prefix_for_count(count: int) -> int:
     for prefix in range(MAX_PREFIX, MIN_PREFIX - 1, -1):
         if _usable_hosts(prefix) >= count:
             return prefix
-    # Unreachable while MAX_COUNT equals the usable hosts of a /MIN_PREFIX, but fail loudly if those
+    # Unreachable while MAX_ITEMS equals the usable hosts of a /MIN_PREFIX, but fail loudly if those
     # two constants are ever changed out of step.
     raise IPGeneratorError(f"No subnet of /{MIN_PREFIX} or smaller holds {count:,} addresses.")
 
@@ -152,10 +176,10 @@ def generate_ips(
         usable = network.num_addresses - 2
         if count is None:
             # Subnet only: fill it completely.
-            if usable > MAX_COUNT:
+            if usable > MAX_ITEMS:
                 raise IPGeneratorError(
                     f"{network} has {usable:,} usable addresses, more than the limit of "
-                    f"{MAX_COUNT:,}. Give a count, or use a /{MIN_PREFIX} or smaller."
+                    f"{MAX_ITEMS:,}. Give a count, or use a /{MIN_PREFIX} or smaller."
                 )
             count = usable
         else:
@@ -210,8 +234,8 @@ def _usable_hosts(prefix: int) -> int:
 
 
 def _check_count(count: int) -> None:
-    """Refuse counts below 1 or above MAX_COUNT with a message the user can act on."""
+    """Refuse counts below 1 or above MAX_ITEMS with a message the user can act on."""
     if count < 1:
         raise IPGeneratorError("The count must be at least 1.")
-    if count > MAX_COUNT:
-        raise IPGeneratorError(f"The count can be at most {MAX_COUNT:,} (one full /{MIN_PREFIX}).")
+    if count > MAX_ITEMS:
+        raise IPGeneratorError(f"The count can be at most {MAX_ITEMS:,} (one full /{MIN_PREFIX}).")

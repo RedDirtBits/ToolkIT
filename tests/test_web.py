@@ -90,6 +90,12 @@ def test_ip_host_bits_note(client):
     assert "rounded down from 192.168.5.9/30" in response.text
 
 
+@pytest.mark.parametrize("network", ["192.168.5.8/30", "192.168.5.8 255.255.255.252"])
+def test_ip_no_host_bits_no_note(client, network):
+    response = client.post("/ip", data={"network": network}, headers=HTMX)
+    assert "rounded down" not in response.text
+
+
 @pytest.mark.parametrize(
     "data, message",
     [
@@ -331,6 +337,45 @@ def test_post_from_another_site_is_refused(client):
 def test_post_from_own_page_is_allowed(client):
     response = client.post("/ip", data={"count": "5"}, headers={"Origin": "http://testserver", **HTMX})
     assert response.status_code == 200
+
+
+def test_post_with_foreign_referer_and_no_origin_is_refused(client):
+    # Some browsers send only Referer (no Origin): the check must fall back to it.
+    response = client.post("/ip", data={"count": "5"}, headers={"Referer": "http://evil.example/page"})
+    assert response.status_code == 403
+
+
+def test_post_with_own_referer_and_no_origin_is_allowed(client):
+    response = client.post("/ip", data={"count": "5"}, headers={"Referer": "http://testserver/", **HTMX})
+    assert response.status_code == 200
+
+
+def test_post_with_origin_null_is_refused(client):
+    # Browsers send "Origin: null" from sandboxed frames and file:// pages: not our pages.
+    response = client.post("/ip", data={"count": "5"}, headers={"Origin": "null"})
+    assert response.status_code == 403
+
+
+def test_post_with_no_origin_or_referer_is_allowed(client):
+    # A deliberate choice (ARCHITECTURE.md, Security): only a non-browser tool such as curl on
+    # this machine sends neither, and a web page can't make the browser leave both out.
+    response = client.post("/ip", data={"count": "5"}, headers=HTMX)
+    assert response.status_code == 200
+
+
+@pytest.mark.parametrize("host", ["0.0.0.0", "192.0.2.10", ""])
+def test_main_refuses_to_listen_beyond_this_machine(monkeypatch, host):
+    from app import __main__, settings
+
+    monkeypatch.setattr(settings, "HOST", host)
+    monkeypatch.setattr("sys.argv", ["app", "--no-browser"])
+
+    def must_not_start(*args, **kwargs):
+        raise AssertionError("uvicorn was started")
+
+    monkeypatch.setattr(__main__.uvicorn, "run", must_not_start)
+    with pytest.raises(SystemExit, match="Refusing to start"):
+        __main__.main()
 
 
 # --- Clear buttons -------------------------------------------------------------------------------

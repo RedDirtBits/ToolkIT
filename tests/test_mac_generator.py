@@ -8,9 +8,9 @@ import random
 
 import pytest
 
+from app.tools.limits import MAX_ITEMS
 from app.tools.mac_format import parse_mac
 from app.tools.mac_generator import (
-    MAX_COUNT,
     MACGeneratorError,
     generate_formatted,
     generate_macs,
@@ -64,14 +64,14 @@ def test_oui_mode_keeps_the_prefix():
 
 
 def test_maximum_count_works():
-    assert len(set(generate_macs(MAX_COUNT, rng=seeded()))) == MAX_COUNT
+    assert len(set(generate_macs(MAX_ITEMS, rng=seeded()))) == MAX_ITEMS
 
 
 def test_same_seed_gives_same_result():
     assert generate_macs(20, rng=seeded()) == generate_macs(20, rng=seeded())
 
 
-@pytest.mark.parametrize("count", [0, -1, MAX_COUNT + 1])
+@pytest.mark.parametrize("count", [0, -1, MAX_ITEMS + 1])
 def test_bad_counts_are_refused(count):
     with pytest.raises(MACGeneratorError):
         generate_macs(count)

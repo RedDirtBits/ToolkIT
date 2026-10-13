@@ -46,8 +46,7 @@ import re
 import string
 from dataclasses import dataclass, field
 
-# Same per-request limit as the other tools (one /16's worth), so a giant paste can't hang the page.
-MAX_LINES = 65_534
+from app.tools.limits import MAX_ITEMS
 
 # The keys the web form sends for the output case.
 #   same   copy each real hostname's own case (HQ6500A -> HQ2914K, hq6500a -> hq2914k)
@@ -133,8 +132,8 @@ def fake_hostnames(
     lines = [line.strip() for line in text.splitlines()]
     if not any(lines):
         raise HostnameFakerError("Paste at least one hostname, one per line.")
-    if len(lines) > MAX_LINES:
-        raise HostnameFakerError(f"Paste at most {MAX_LINES:,} lines at a time.")
+    if len(lines) > MAX_ITEMS:
+        raise HostnameFakerError(f"Paste at most {MAX_ITEMS:,} lines at a time.")
 
     # Everything real in the paste, lowercase: whole names (to spot a fake that equals one) and
     # letter/digit pieces (which fake pieces try to avoid).

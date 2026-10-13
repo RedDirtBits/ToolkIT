@@ -59,12 +59,9 @@ async def iplist(request: Request):
             '"any", replace it with 0.0.0.0/0.'
         )
 
-    # Explain the "odd-looking" case where it happens: mostly single addresses (e.g. in-use
-    # management IPs) that break into many small blocks, because an exact summary can't bridge
-    # the unused addresses between them. Range-shaped lists (what ACLs and prefix lists hold)
-    # merge cleanly and don't need the note.
-    singles = sum(1 for item in result.original if item.prefixlen == 32)
-    if len(result.summary) > 1 and singles * 2 > len(result.original):
+    # Explain the "odd-looking" case where it happens: mostly single addresses that break into
+    # several blocks (the tool decides what "mostly single" means). One block needs no note.
+    if len(result.summary) > 1 and result.mostly_single_addresses:
         warnings.append(
             f"Note: these are mostly single addresses, so the exact summary has {len(result.summary):,} "
             "small blocks: it never includes unused addresses, and gaps between your addresses "

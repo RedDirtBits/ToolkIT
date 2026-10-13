@@ -25,10 +25,8 @@ from __future__ import annotations
 import random
 import re
 
+from app.tools.limits import MAX_ITEMS
 from app.tools.mac_format import format_mac
-
-# Same per-request limit as the IP generator (one /16's worth), so a typo can't hang the app.
-MAX_COUNT = 65_534
 
 # The keys the web form sends.
 MODES = ("local", "random", "oui")
@@ -80,8 +78,8 @@ def generate_macs(
         raise MACGeneratorError(f"Unknown mode '{mode}'. Choose one of: {', '.join(MODES)}.")
     if count < 1:
         raise MACGeneratorError("The count must be at least 1.")
-    if count > MAX_COUNT:
-        raise MACGeneratorError(f"The count can be at most {MAX_COUNT:,}.")
+    if count > MAX_ITEMS:
+        raise MACGeneratorError(f"The count can be at most {MAX_ITEMS:,}.")
 
     if mode == "oui":
         if oui is None:

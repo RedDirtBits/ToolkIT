@@ -11,12 +11,12 @@ import string
 import pytest
 
 from app.tools.hostname_faker import (
-    MAX_LINES,
     HostnameFakerError,
     fake_hostnames,
     parse_keep_words,
     split_pieces,
 )
+from app.tools.limits import MAX_ITEMS
 
 
 def seeded() -> random.Random:
@@ -217,7 +217,7 @@ def test_empty_paste_is_refused():
 
 def test_too_many_lines_is_refused():
     with pytest.raises(HostnameFakerError, match="at most"):
-        fake_hostnames("a\n" * (MAX_LINES + 1))
+        fake_hostnames("a\n" * (MAX_ITEMS + 1))
 
 
 def test_windows_line_endings_and_stray_spaces():
@@ -229,9 +229,9 @@ def test_windows_line_endings_and_stray_spaces():
 def test_maximum_paste_with_mostly_real_big_pieces():
     # 65,534 different 5-digit numbers fill most of the 100,000 possible values, so the random path
     # must fall back to reusing real values instead of failing. Every fake must still be different.
-    text = "\n".join(f"acc-{n:05d}" for n in range(MAX_LINES))
+    text = "\n".join(f"acc-{n:05d}" for n in range(MAX_ITEMS))
     result = fake_hostnames(text, {"acc"}, rng=seeded())
-    assert len(set(result.fakes)) == MAX_LINES
+    assert len(set(result.fakes)) == MAX_ITEMS
 
 
 # --- non-ASCII characters --------------------------------------------------------------------------

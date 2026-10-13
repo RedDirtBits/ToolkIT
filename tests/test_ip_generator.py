@@ -11,15 +11,16 @@ import random
 import pytest
 
 from app.tools.ip_generator import (
-    MAX_COUNT,
     IPGeneratorError,
     IPResult,
     format_ips,
     generate_ips,
+    host_bits_cleared,
     parse_target,
     prefix_for_count,
     random_private_network,
 )
+from app.tools.limits import MAX_ITEMS
 
 Net = ipaddress.IPv4Network
 Addr = ipaddress.IPv4Address
@@ -71,18 +72,43 @@ def test_parse_target_rejects_garbage_with_friendly_error(text):
         parse_target(text)
 
 
+# --- host_bits_cleared ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text, cleared",
+    [
+        ("192.168.5.9/22", True),  # .5.9 isn't on a /22 boundary: parse_target gives 192.168.4.0/22
+        ("192.168.5.9 255.255.252.0", True),  # same, mask after a space
+        ("192.168.4.1/0.0.3.255", True),  # same, ACL wildcard after the slash
+        ("192.168.4.0/22", False),  # already the network address
+        ("192.168.4.0 255.255.252.0", False),
+        ("172.20.1.0", False),  # a bare address is a starting point, not a network
+        ("", False),
+    ],
+)
+def test_host_bits_cleared(text, cleared):
+    assert host_bits_cleared(text) is cleared
+
+
+def test_host_bits_cleared_refuses_what_parse_target_refuses():
+    # One parser behind both, so they can't disagree about what's valid.
+    with pytest.raises(IPGeneratorError):
+        host_bits_cleared("192.168.4.0/33")
+
+
 # --- prefix_for_count ----------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     "count, prefix",
-    [(1, 30), (2, 30), (3, 29), (254, 24), (255, 23), (300, 23), (510, 23), (511, 22), (MAX_COUNT, 16)],
+    [(1, 30), (2, 30), (3, 29), (254, 24), (255, 23), (300, 23), (510, 23), (511, 22), (MAX_ITEMS, 16)],
 )
 def test_prefix_for_count_picks_smallest_subnet(count, prefix):
     assert prefix_for_count(count) == prefix
 
 
-@pytest.mark.parametrize("count", [0, -5, MAX_COUNT + 1])
+@pytest.mark.parametrize("count", [0, -5, MAX_ITEMS + 1])
 def test_prefix_for_count_rejects_out_of_range(count):
     with pytest.raises(IPGeneratorError):
         prefix_for_count(count)
@@ -154,7 +180,7 @@ def test_count_from_huge_network_is_fine():
 
 
 def test_maximum_count_works():
-    assert_valid(generate_ips(count=MAX_COUNT, rng=seeded()), MAX_COUNT)
+    assert_valid(generate_ips(count=MAX_ITEMS, rng=seeded()), MAX_ITEMS)
 
 
 def test_same_seed_gives_same_result():
@@ -190,7 +216,7 @@ def test_nothing_given_is_refused():
         generate_ips()
 
 
-@pytest.mark.parametrize("count", [0, MAX_COUNT + 1])
+@pytest.mark.parametrize("count", [0, MAX_ITEMS + 1])
 def test_bad_count_with_network_is_refused(count):
     with pytest.raises(IPGeneratorError):
         generate_ips(count=count, target=Net("172.16.0.0/12"))

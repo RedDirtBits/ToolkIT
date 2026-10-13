@@ -25,10 +25,8 @@ from __future__ import annotations
 import ipaddress
 from dataclasses import dataclass, field
 
+from app.tools.limits import MAX_ITEMS
 from app.tools.subnet_calc import SubnetError, parse_input, read_as_single_host
-
-# Same per-request limit as the other tools, so a giant paste can't hang the page.
-MAX_LINES = 65_534
 
 # How summarized blocks can be written. The keys are what the web form sends.
 #   prefix    192.168.4.0/22
@@ -70,6 +68,17 @@ class CleanupResult:
         """Valid lines that repeated an earlier one."""
         return self.total - len(self.invalid) - len(self.original)
 
+    @property
+    def mostly_single_addresses(self) -> bool:
+        """More than half the unique items are single addresses (/32s).
+
+        Such a list (e.g. in-use management IPs) breaks into many small exact blocks, because an
+        exact summary can't bridge the unused addresses between them. The page uses this to explain
+        that result; range-shaped lists (what ACLs and prefix lists hold) merge cleanly.
+        """
+        singles = sum(1 for item in self.original if item.prefixlen == 32)
+        return singles * 2 > len(self.original)
+
 
 def parse_item(text: str) -> ipaddress.IPv4Network:
     """Read one line as an address (a /32) or a network. See the module docstring for the rules."""
@@ -92,8 +101,8 @@ def parse_item(text: str) -> ipaddress.IPv4Network:
 def clean_up(text: str) -> CleanupResult:
     """Read a pasted list (one item per line) and work out every result."""
     lines = text.splitlines()
-    if len(lines) > MAX_LINES:
-        raise IPListError(f"Paste at most {MAX_LINES:,} lines at a time.")
+    if len(lines) > MAX_ITEMS:
+        raise IPListError(f"Paste at most {MAX_ITEMS:,} lines at a time.")
 
     result = CleanupResult()
     seen: set[ipaddress.IPv4Network] = set()

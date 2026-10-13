@@ -10,7 +10,7 @@ The work is done by app/tools/mac_format.py.
 
 from fastapi import APIRouter, Request
 
-from app import settings
+from app.tools.limits import MAX_ITEMS
 from app.tools.mac_format import convert_all_formats
 from app.web.forms import is_checked, read_large_form
 from app.web.responses import OutputBlock, ToolResult, cap_warnings, tool_response
@@ -39,8 +39,8 @@ async def convert(request: Request):
 
     if not macs.strip():
         return refuse("Paste one or more MAC addresses, one per line.")
-    if len(macs.splitlines()) > settings.MAX_CONVERT_LINES:
-        return refuse(f"That's more than {settings.MAX_CONVERT_LINES:,} lines; convert it in parts.")
+    if len(macs.splitlines()) > MAX_ITEMS:
+        return refuse(f"That's more than {MAX_ITEMS:,} lines; convert it in parts.")
     converted = convert_all_formats(macs, is_checked(upper))
 
     warnings = cap_warnings(

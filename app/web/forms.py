@@ -9,6 +9,7 @@ call these helpers, which give messages a person can act on.
 from fastapi import Request
 
 from app import settings
+from app.tools.limits import MAX_ITEMS
 
 
 class FormError(ValueError):
@@ -34,17 +35,20 @@ def parse_count(text: str, required: bool = False) -> int | None:
     # Check the LENGTH before converting. Python refuses to turn a string of
     # more than 4,300 digits into an int (a safety limit since 3.11) and raises
     # a plain ValueError, which the routes don't catch: the page would freeze
-    # on a mis-paste. No tool accepts more than 65,534, so anything past six
-    # digits is too large anyway; the tool refuses 6-digit counts with its own
-    # message ("at most 65,534 at a time").
+    # on a mis-paste. No tool accepts more than MAX_ITEMS, so a number with
+    # more digits than _MAX_COUNT_DIGITS is too large anyway. Anything shorter
+    # reaches the tool, which refuses it with its own, exact message
+    # ("at most 65,534").
     if len(cleaned) > _MAX_COUNT_DIGITS:
         raise FormError(f"'{_shorten(cleaned)}' is far too large for a count.")
     return int(cleaned)
 
 
-# Six digits = up to 999,999: comfortably above every tool's limit, far below
-# the length where int() gives up.
-_MAX_COUNT_DIGITS = 6
+# One digit more than the largest count any tool accepts (65,534 has 5, so 6:
+# up to 999,999). Worked out from MAX_ITEMS, so raising the limit can never
+# leave this cap blocking counts the tools would accept. Still far below the
+# 4,300 digits where int() gives up.
+_MAX_COUNT_DIGITS = len(str(MAX_ITEMS)) + 1
 
 
 def _shorten(text: str, limit: int = 20) -> str:

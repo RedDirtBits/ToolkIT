@@ -10,7 +10,13 @@ import ipaddress
 
 from fastapi import APIRouter, Form, Request
 
-from app.tools.ip_generator import IPGeneratorError, format_ips, generate_ips, parse_target
+from app.tools.ip_generator import (
+    IPGeneratorError,
+    format_ips,
+    generate_ips,
+    host_bits_cleared,
+    parse_target,
+)
 from app.web.forms import FormError, parse_count
 from app.web.responses import OutputBlock, ToolResult, tool_response
 
@@ -40,8 +46,8 @@ def generate(
         origin = "random private network"
     elif isinstance(target, ipaddress.IPv4Address):
         origin = f"sized for the count, starting at {target}"
-    elif network.split("/")[0].split()[0] != str(net.network_address):
-        # e.g. 192.168.5.9/22 typed: the host bits were cleared to 192.168.4.0.
+    elif host_bits_cleared(network):
+        # e.g. 192.168.5.9/22 typed: the tool cleared the host bits to 192.168.4.0.
         origin = f"rounded down from {network.strip()}"
     else:
         origin = ""

@@ -38,8 +38,9 @@ ToolkIT/
 ├── app/
 │   ├── __main__.py          # "python -m app": refuses any HOST but 127.0.0.1, starts uvicorn on :8780, opens the browser
 │   ├── main.py              # create_app(): builds the FastAPI app (middleware, static files, routers); nothing else
-│   ├── settings.py          # APP_NAME, HOST, PORT, MAX_CONVERT_LINES, MAX_FORM_FIELD_BYTES, OUI_DIR
+│   ├── settings.py          # APP_NAME, HOST, PORT, MAX_TABLE_ROWS, MAX_FORM_FIELD_BYTES, OUI_DIR
 │   ├── tools/               # the tools: pure Python, no web code
+│   │   ├── limits.py        # MAX_ITEMS (65,534): the one per-request item limit, shared by tools and routes
 │   │   ├── ip_generator.py  # random IPv4 addresses by subnet and/or count; output styles
 │   │   ├── subnet_calc.py   # subnet calculator: prefix/mask/wildcard in, every value out; splitting
 │   │   ├── ip_list.py       # IP list cleanup: dedupe, numeric sort, exact summary, covering block
@@ -156,13 +157,15 @@ override (see Decisions).
 |---|---|---|
 | `HOST` | `127.0.0.1` | localhost only; `__main__.py` refuses to start with anything else |
 | `PORT` | `8780` | not 8000 (often taken) or ports used by other local apps |
-| `MAX_CONVERT_LINES` | `65_534` | one /16's worth; stops a giant paste hanging the page |
+| `MAX_TABLE_ROWS` | `500` | rows shown in a results table (OUI, subnet split); the boxes hold everything |
 | `MAX_FORM_FIELD_BYTES` | 8 MB | a full /16 in "ip mask" style is ~2 MB; Starlette's default is 1 MB |
 | `OUI_DIR` | `<project>/data/oui` | beside the app, so the portable folder carries it |
 
-Other limits live as constants in the module that uses them (`MAX_COUNT`, `MAX_LINES` in the tools,
-`MAX_TABLE_ROWS` in two routes, `TIMEOUT` and `MAX_FILE_BYTES` in `oui_update.py`). Never in
-settings: credentials or secrets (there are none).
+The per-request item limit, `MAX_ITEMS` (`65_534`, one /16's worth), is in `app/tools/limits.py`,
+not here: the tools use it, and tools don't import web settings. The routes and `forms.py` import
+it from there (the count box's digit cap is worked out from it). Limits that only one tool has stay
+in that tool (`MAX_SUBNETS` in `subnet_calc.py`, `MAX_VLAN` in `vlan_list.py`, `TIMEOUT` and
+`MAX_FILE_BYTES` in `oui_update.py`). Never in settings: credentials or secrets (there are none).
 
 ## Security
 
@@ -296,19 +299,31 @@ below shape the design.
 - **Long route handlers:** several (IP list, subnet, VLAN, OUI lookup) run to 40–60 lines, mostly
   building summary text and tables from a tool's result. That's presentation, but it also holds
   decisions (what to say when) that can only be tested through the web layer.
-- **One limit, several copies:** 65,534 is defined separately in `settings.py` and in four tools;
-  `MAX_TABLE_ROWS` in two routes.
+- **One limit, several copies:** 65,534 was defined separately in `settings.py` and in four tools;
+  `MAX_TABLE_ROWS` in two routes. (Fixed: see below.)
 - **Decided (2026-10-12, after the stage 4 review, `docs/reviews/2026-10-12-delivery.md`):**
   - Folder names, no `repositories/`, plain constants, no `schemas/`: **kept**. The separation is
     real (nothing in `tools/` imports web code); renaming would be churn with no behaviour gain,
     and a settings class or schema folder would be a moving part with no user.
   - Long route handlers: **kept** as presentation, except two rules that move into the tools (the
     IP generator's "host bits cleared" check and IP list's "mostly single addresses" test).
-  - One limit, several copies: **to be fixed** in the review's fix pass: one `MAX_ITEMS` in
+  - One limit, several copies: **fixed** in the review's fix pass (2026-10-12): one `MAX_ITEMS` in
     `app/tools/limits.py` (so tools still don't import web settings), `MAX_TABLE_ROWS` once in
-    `settings.py`.
+    `settings.py`. The two rules named above now live in the tools too
+    (`ip_generator.host_bits_cleared()`, `CleanupResult.mostly_single_addresses`).
   - Putting all OUI disk access in one file (e.g. `oui_files.py`): **later idea**, not done in the
     review's fix pass, so the fixes stay reviewable.
+
+### 2026-10-12: Runtime dependencies pinned exactly, no lock file
+
+- **Chosen:** `requirements.txt` pins the five direct dependencies with `==` to the versions in
+  `python/` (the ones tested on the laptop). Upgrading = edit a version, reinstall into `python/`,
+  re-run the tests, commit.
+- **Why:** with `>=` lower bounds, rebuilding `python/` could silently pull a new major version
+  (Starlette is already at 1.x), and two release zips from one commit could behave differently.
+- **Rejected:** a full lock file (`pip freeze` of `python/`, every sub-dependency): exact, but one
+  more file to keep in step by hand, for one maintainer and two direct dependencies beyond
+  FastAPI's own. Sub-dependencies (e.g. starlette) follow what the pinned FastAPI asks for.
 
 ## Deliberately left out
 

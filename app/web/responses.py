@@ -48,7 +48,7 @@ class OutputBlock:
 
 @dataclass
 class Table:
-    """A results table (the OUI tab's lookups and searches), shown above the output boxes.
+    """A results table (OUI lookups and vendor searches, the subnet split), shown above the output boxes.
 
     headers   the column titles
     rows      one list of cell texts per row

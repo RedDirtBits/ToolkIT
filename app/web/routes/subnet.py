@@ -10,13 +10,11 @@ The work is done by app/tools/subnet_calc.py.
 
 from fastapi import APIRouter, Form, Request
 
+from app import settings
 from app.tools.subnet_calc import SubnetError, calculate, parse_split, read_as_single_host, split_network
 from app.web.responses import OutputBlock, Table, ToolResult, tool_response
 
 router = APIRouter()
-
-# Show at most this many subnets in the table; the Subnets box has them all.
-MAX_TABLE_ROWS = 500
 
 
 @router.post("/subnet")
@@ -59,10 +57,10 @@ def subnet(request: Request, address: str = Form(""), split: str = Form("")):
     blocks = []
     if subnets:
         summary += f", split into {len(subnets):,} × /{subnets[0].prefixlen}"
-        rows = [_subnet_row(s) for s in subnets[:MAX_TABLE_ROWS]]
+        rows = [_subnet_row(s) for s in subnets[: settings.MAX_TABLE_ROWS]]
         note = (
-            f"First {MAX_TABLE_ROWS:,} of {len(subnets):,} shown; the Subnets box has them all."
-            if len(subnets) > MAX_TABLE_ROWS
+            f"First {settings.MAX_TABLE_ROWS:,} of {len(subnets):,} shown; the Subnets box has them all."
+            if len(subnets) > settings.MAX_TABLE_ROWS
             else ""
         )
         table = Table(headers=["Subnet", "Usable range", "Broadcast"], rows=rows, note=note)

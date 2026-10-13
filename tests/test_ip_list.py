@@ -8,7 +8,6 @@ import ipaddress
 import pytest
 
 from app.tools.ip_list import (
-    MAX_LINES,
     IPListError,
     clean_up,
     covering_block,
@@ -16,6 +15,7 @@ from app.tools.ip_list import (
     format_item,
     parse_item,
 )
+from app.tools.limits import MAX_ITEMS
 
 net = ipaddress.IPv4Network
 
@@ -121,7 +121,7 @@ def test_empty_paste_is_refused():
 
 def test_too_many_lines_is_refused():
     with pytest.raises(IPListError, match="at most"):
-        clean_up("192.0.2.1\n" * (MAX_LINES + 1))
+        clean_up("192.0.2.1\n" * (MAX_ITEMS + 1))
 
 
 def test_a_full_slash_16_summarizes_to_one_block():
@@ -133,6 +133,20 @@ def test_a_full_slash_16_summarizes_to_one_block():
     assert result.covering == net("172.20.0.0/16")
     assert result.extra == 2
     assert len(result.summary) == 15
+
+
+@pytest.mark.parametrize(
+    "paste, expected",
+    [
+        ("192.0.2.1\n192.0.2.9\n192.0.2.40", True),  # all single addresses
+        ("192.0.2.1\n192.0.2.9\n198.51.100.0/24", True),  # two of three
+        ("192.0.2.1\n198.51.100.0/24", False),  # exactly half is not "mostly"
+        ("192.168.4.0/24\n192.168.5.0/24\n192.0.2.7", False),  # range-shaped
+        ("192.0.2.1\n192.0.2.1\n198.51.100.0/24", False),  # duplicates count once
+    ],
+)
+def test_mostly_single_addresses(paste, expected):
+    assert clean_up(paste).mostly_single_addresses is expected
 
 
 # --- formatting ----------------------------------------------------------------------------------
