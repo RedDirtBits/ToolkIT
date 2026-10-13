@@ -220,10 +220,16 @@ pictures, in `GETTING-STARTED.html`.
 - **The vendor list is only as fresh as the last Update.** It isn't refreshed automatically. Update
   works through a proxy that uses the system settings, but not one that needs a login or a setup
   script; use Import there.
+- **`0.0.0.0` and `255.255.255.255` always mean one host** in the subnet calculator and IP list
+  cleanup, whether typed as a mask or an ACL wildcard. So an ACL line meaning "any"
+  (`0.0.0.0 255.255.255.255`) is read as the single address 0.0.0.0; the page warns when this
+  happens. For "any", type `0.0.0.0/0`.
 - **Hostname faker:** fakes are consistent within one paste only; pasting again gives new fakes.
   Dots are separators like `-` and `_`, so the domain of an FQDN is faked too unless its pieces are
   on the keep list. If a shape runs out of unique fakes (very short pieces, many values), the
-  affected lines are reported.
+  affected lines are reported. Only A-Z and 0-9 are faked: other characters (accented letters,
+  for example) are copied into the fake unchanged, and those lines are reported so you can check
+  them before sharing.
 - **MAC converter formats:** colon, hyphen and Cisco dotted. Other formats (e.g. `aabbcc-ddeeff`)
   aren't read or written.
 - **VLAN list:** IDs 1–4094 only, numbers and ranges only; it doesn't read VLANs out of whole
@@ -240,7 +246,7 @@ pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-About 400 tests (416 on Linux; 404 on Windows, where the release-build tests are skipped), using fake data only (documentation IP ranges, invented hostnames, small invented
+About 450 tests (451 on Linux; on Windows the release-build tests are skipped), using fake data only (documentation IP ranges, invented hostnames, small invented
 IEEE registry files); none of them touch the network.
 
 The code is also linted and formatted with [ruff](https://docs.astral.sh/ruff/) and type-checked

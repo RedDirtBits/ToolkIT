@@ -47,6 +47,18 @@ async def iplist(request: Request):
         [f"Line {number} skipped, not an address or network: {text}" for number, text in result.invalid]
     )
 
+    # One warning for all of them, not one per line: an ACL of "host" entries (x.x.x.x 0.0.0.0)
+    # would otherwise fill the page with the same message.
+    if result.read_as_host:
+        count = len(result.read_as_host)
+        first_number, first_text = result.read_as_host[0]
+        lines = "1 line uses" if count == 1 else f"{count:,} lines use"
+        warnings.append(
+            f"{lines} 0.0.0.0 or 255.255.255.255 as the mask or wildcard (first: line {first_number}, "
+            f'{first_text}). These are read as a single host (/32), never as "any". If a line meant '
+            '"any", replace it with 0.0.0.0/0.'
+        )
+
     # Explain the "odd-looking" case where it happens: mostly single addresses (e.g. in-use
     # management IPs) that break into many small blocks, because an exact summary can't bridge
     # the unused addresses between them. Range-shaped lists (what ACLs and prefix lists hold)

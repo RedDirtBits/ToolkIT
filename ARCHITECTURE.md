@@ -181,6 +181,14 @@ settings: credentials or secrets (there are none).
 - Lines that can't be read are listed (as warnings in the converter, IP list and VLAN list; as table
   rows marked "(not a MAC address)" in the OUI lookup), never dropped silently. At most 20 warnings
   are shown, plus a count of the rest.
+- **Read, but maybe not as meant: a warning, not a guess.** The tool reports the fact, the route
+  words it (decided 2026-10-12, review findings 5 and 6):
+  - `0.0.0.0` / `255.255.255.255` as a mask or wildcard are always read as one host (/32), though
+    each means "any" the other way round. `subnet_calc.read_as_single_host()` names the value; the
+    subnet calculator warns per input, IP list cleanup once for all such lines (`read_as_host`).
+  - The hostname faker only fakes ASCII letters and digits; anything else is copied through. Lines
+    with non-ASCII characters are faked as usual and listed (`non_ascii`), so the user checks them
+    before sharing. Only A-Z is lowercased (`_ASCII_LOWER`), so a fake keeps the original's length.
 - Update/Import: the file is validated before saving; a failed download, a wrong file or a half
   write leaves the previous list in place. A save the disk refuses (read-only, full, locked by
   antivirus) becomes an `OUIUpdateError` naming the folder and reason. If an Update's second or
@@ -211,7 +219,7 @@ settings: credentials or secrets (there are none).
 | release build | `tests/test_build_release.py` checks the allowlist settings; the build's own smoke test runs on Windows |
 | browser (`app.js`) | No automated tests (no JavaScript test tools, on purpose). Checked by hand in a browser, or in headless Firefox with a scratch page that fires the events itself |
 
-433 tests on Linux (Python 3.12, 2026-10-12); on Windows (3.14) the release-build tests are
+451 tests on Linux (Python 3.12, 2026-10-12); on Windows (3.14) the release-build tests are
 skipped (404 when last run there, before the stage 4 fixes).
 All test data is invented (documentation ranges, made-up hostnames and vendors).
 

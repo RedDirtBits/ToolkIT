@@ -232,3 +232,28 @@ def test_maximum_paste_with_mostly_real_big_pieces():
     text = "\n".join(f"acc-{n:05d}" for n in range(MAX_LINES))
     result = fake_hostnames(text, {"acc"}, rng=seeded())
     assert len(set(result.fakes)) == MAX_LINES
+
+
+# --- non-ASCII characters --------------------------------------------------------------------------
+
+
+def test_non_ascii_lines_are_reported():
+    # Invented names. The "ö" isn't an A-Z letter, so it's a separator and survives into the fake.
+    result = fake_hostnames("bölla-sw-01\n\nlab-sw-02", rng=seeded())
+    assert result.non_ascii == [(1, "bölla-sw-01")]
+    assert "ö" in result.fakes[0]
+    assert result.fakes[0] != "bölla-sw-01"
+
+
+def test_ascii_lines_are_not_reported():
+    assert fake_hostnames("lab-sw-01\nLAB_SW_02", rng=seeded()).non_ascii == []
+
+
+def test_case_copy_stays_aligned_with_letters_that_lower_changes_length():
+    # "İ".lower() is two characters; lowercasing it would shift the case copy by one.
+    result = fake_hostnames("LAB-İX-01", rng=seeded())
+    fake = result.fakes[0]
+    assert len(fake) == len("LAB-İX-01")
+    assert fake[4] == "İ"
+    assert shape(fake) == shape("LAB-İX-01")
+    assert fake[:3].isupper() and fake[5].isupper()

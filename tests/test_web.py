@@ -262,6 +262,12 @@ def test_hosts_unchanged_line_is_warned(client):
     assert "Line 2 not faked" in response.text
 
 
+def test_hosts_non_ascii_line_is_warned(client):
+    response = client.post("/hosts", data={"hostnames": "lab-sw-01\nbölla-sw-01"}, headers=HTMX)
+    assert "Line 2 has characters outside A-Z and 0-9" in response.text
+    assert "Line 1 has" not in response.text
+
+
 def test_hosts_empty_paste_is_refused(client):
     response = client.post("/hosts", data={"hostnames": " \n"}, headers=HTMX)
     assert "Paste at least one hostname" in response.text

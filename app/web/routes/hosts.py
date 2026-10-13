@@ -40,13 +40,21 @@ async def fake(request: Request):
     if keep_words:
         summary += f", keeping {', '.join(sorted(keep_words))}"
 
-    warnings = [
-        f"Line {number} not faked: every part of it is on the keep list: {text}"
-        for number, text in faked.unchanged
-    ] + [
-        f"Line {number}: its fake matches another real hostname from the paste: {text}"
-        for number, text in faked.matches_real
-    ]
+    warnings = (
+        [
+            f"Line {number} not faked: every part of it is on the keep list: {text}"
+            for number, text in faked.unchanged
+        ]
+        + [
+            f"Line {number}: its fake matches another real hostname from the paste: {text}"
+            for number, text in faked.matches_real
+        ]
+        + [
+            f"Line {number} has characters outside A-Z and 0-9 (e.g. accented letters), copied into the "
+            f"fake unchanged: check it before sharing: {text}"
+            for number, text in faked.non_ascii
+        ]
+    )
 
     block = OutputBlock(download="hosts", lines=faked.fakes)
     result = ToolResult(kind="hosts", summary=summary, blocks=[block], warnings=cap_warnings(warnings))

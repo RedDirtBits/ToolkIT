@@ -103,3 +103,16 @@ def test_range_shaped_lists_get_no_explanation(client):
     paste = "192.168.4.0/24\n192.168.5.0/24\n192.168.8.0/23\n192.0.2.7"
     response = client.post("/iplist", data={"ips": paste}, headers=HTMX)
     assert "mostly single addresses" not in response.text
+
+
+def test_ambiguous_sizes_get_one_warning_naming_the_first(client):
+    paste = "192.0.2.0/24\n198.51.100.7 0.0.0.0\n198.51.100.9 0.0.0.0\n0.0.0.0 255.255.255.255"
+    response = client.post("/iplist", data={"ips": paste}, headers=HTMX)
+    assert response.text.count("as a single host (/32)") == 1
+    assert "3 lines use 0.0.0.0 or 255.255.255.255" in response.text
+    assert "first: line 2, 198.51.100.7 0.0.0.0" in response.text
+
+
+def test_no_ambiguous_sizes_no_warning(client):
+    response = client.post("/iplist", data={"ips": "192.0.2.0/24\n192.0.2.7"}, headers=HTMX)
+    assert "as a single host" not in response.text

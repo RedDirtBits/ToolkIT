@@ -10,7 +10,9 @@ Input, all meaning the same thing (host bits are fine: ".17" just means "the sub
 Mask or wildcard? A mask is ones then zeros (255.255.252.0); a wildcard is the reverse
 (0.0.3.255). The shape tells them apart, so the user never has to say which. The two values that
 could be either both mean a single host here: 255.255.255.255 as a mask is /32, and 0.0.0.0 as a
-wildcard is /32 (ACL "192.0.2.5 0.0.0.0" = exactly that host).
+wildcard is /32 (ACL "192.0.2.5 0.0.0.0" = exactly that host). Each of them also means "any" when
+read the other way (mask 0.0.0.0 = /0, wildcard 255.255.255.255 = /0), so read_as_single_host()
+lets the page warn when one of them decided the size.
 
 /31 and /32 are described, not refused: a /31 is a point-to-point link with both addresses usable
 and no broadcast (RFC 3021); a /32 is one host.
@@ -29,6 +31,15 @@ from dataclasses import dataclass
 
 # The most subnets one split may produce (e.g. a /16 into /32s), so a typo can't hang the page.
 MAX_SUBNETS = 65_536
+
+# The two sizes that could be a mask or a wildcard. Always read as /32 here (see the docstring).
+# Comparing the text is enough: ipaddress only accepts plain dotted decimal (no "000"), so there's
+# no other way to write either value.
+AMBIGUOUS_SIZES = ("0.0.0.0", "255.255.255.255")
+
+# Address, then the size after it: "/22", "/255.255.252.0" or " 255.255.252.0".
+# (\S+?) is the address; (?:/\s*|\s+) is a slash or spaces between; (\S+) is the size.
+_ADDRESS_AND_SIZE = re.compile(r"(\S+?)\s*(?:/\s*|\s+)(\S+)")
 
 # What kind of address it is, checked in this order (first match wins). The RFC numbers are where
 # each block is defined. 10.0.0.0/8 appears here only so it's recognised as private.
@@ -100,8 +111,7 @@ def parse_input(text: str) -> ipaddress.IPv4Interface:
     if not text:
         raise SubnetError("Type an address with a prefix or mask, e.g. 192.168.4.17/22.")
 
-    # Split into address and the part after it: "/22", "/255.255.252.0" or " 255.255.252.0".
-    match = re.fullmatch(r"(\S+?)\s*(?:/\s*|\s+)(\S+)", text)
+    match = _ADDRESS_AND_SIZE.fullmatch(text)
     if not match:
         if _is_address(text):
             raise SubnetError(
@@ -118,6 +128,18 @@ def parse_input(text: str) -> ipaddress.IPv4Interface:
     prefix = _read_size(size_text)
     # strict=False is implied for interfaces: host bits are kept as the address.
     return ipaddress.IPv4Interface((address, prefix))
+
+
+def read_as_single_host(text: str) -> str | None:
+    """Which ambiguous size (0.0.0.0 or 255.255.255.255) made `text` a single host, if any.
+
+    Returns that size as typed, or None. Only reports the fact; the page decides how to word the
+    warning. Call it on input parse_input() accepted: it doesn't check the address itself.
+    """
+    match = _ADDRESS_AND_SIZE.fullmatch(text.strip())
+    if match and match.group(2) in AMBIGUOUS_SIZES:
+        return match.group(2)
+    return None
 
 
 def calculate(text: str) -> SubnetInfo:

@@ -104,3 +104,18 @@ def test_subnets_download_name(client):
 def test_copy_works_for_values_that_are_not_text_boxes(client):
     script = client.get("/static/app.js").text
     assert '"value" in source ? source.value : source.textContent' in script
+
+
+@pytest.mark.parametrize(
+    ("address", "other"), [("192.0.2.5 0.0.0.0", "mask"), ("0.0.0.0 255.255.255.255", "wildcard")]
+)
+def test_ambiguous_size_is_warned(client, address, other):
+    response = client.post("/subnet", data={"address": address}, headers=HTMX)
+    assert "as a single host (/32)" in response.text
+    assert f"As a {other} it would mean" in response.text
+    assert "0.0.0.0/0" in response.text
+
+
+def test_clear_size_has_no_warning(client):
+    response = client.post("/subnet", data={"address": "192.0.2.5/32"}, headers=HTMX)
+    assert "as a single host" not in response.text

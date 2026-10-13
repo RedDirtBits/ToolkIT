@@ -25,7 +25,7 @@ from __future__ import annotations
 import ipaddress
 from dataclasses import dataclass, field
 
-from app.tools.subnet_calc import SubnetError, parse_input
+from app.tools.subnet_calc import SubnetError, parse_input, read_as_single_host
 
 # Same per-request limit as the other tools, so a giant paste can't hang the page.
 MAX_LINES = 65_534
@@ -52,6 +52,8 @@ class CleanupResult:
     covering    the smallest single block containing everything (None if nothing valid)
     extra       addresses inside `covering` that weren't in the input
     invalid     (line number, text) of lines that aren't addresses or networks
+    read_as_host  (line number, text) of lines whose mask/wildcard was 0.0.0.0 or 255.255.255.255,
+                read as one host (/32) although an ACL might have meant "any" (see subnet_calc)
     """
 
     total: int = 0
@@ -61,6 +63,7 @@ class CleanupResult:
     covering: ipaddress.IPv4Network | None = None
     extra: int = 0
     invalid: list[tuple[int, str]] = field(default_factory=list)
+    read_as_host: list[tuple[int, str]] = field(default_factory=list)
 
     @property
     def duplicates(self) -> int:
@@ -103,6 +106,9 @@ def clean_up(text: str) -> CleanupResult:
         except IPListError:
             result.invalid.append((line_number, line.strip()))
             continue
+        if read_as_single_host(line):
+            # Valid, but possibly not what was meant: the page warns about it.
+            result.read_as_host.append((line_number, line.strip()))
         if item not in seen:
             seen.add(item)
             result.original.append(item)

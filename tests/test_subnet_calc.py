@@ -14,6 +14,7 @@ from app.tools.subnet_calc import (
     calculate,
     parse_input,
     parse_split,
+    read_as_single_host,
     split_network,
 )
 
@@ -182,3 +183,25 @@ def test_split_limit():
     with pytest.raises(SubnetError, match="the limit is"):
         split_network(net("172.16.0.0/15"), new_prefix=32)
     assert len(split_network(net("172.16.0.0/16"), new_prefix=32)) == MAX_SUBNETS
+
+
+# --- the two ambiguous sizes (0.0.0.0 / 255.255.255.255) -----------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "size"),
+    [
+        ("192.0.2.5 0.0.0.0", "0.0.0.0"),  # ACL wildcard for one host
+        ("192.0.2.5/255.255.255.255", "255.255.255.255"),  # mask for one host
+        ("  0.0.0.0 255.255.255.255 ", "255.255.255.255"),  # ACL "any", read as one host
+    ],
+)
+def test_read_as_single_host_names_the_ambiguous_size(text, size):
+    assert read_as_single_host(text) == size
+    assert calculate(text).prefix == 32  # still read as one host, as before
+
+
+@pytest.mark.parametrize("text", ["192.0.2.5/32", "192.0.2.5 255.255.255.0", "0.0.0.0/0", "192.0.2.5"])
+def test_read_as_single_host_is_none_for_clear_sizes(text):
+    # /32 typed as a prefix isn't ambiguous; neither is anything else (or no size at all).
+    assert read_as_single_host(text) is None

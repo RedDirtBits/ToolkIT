@@ -31,6 +31,9 @@ Rules:
   size runs out of other values (e.g. nearly all 100 two-digit numbers are in use) is a real value
   reused; a fake that ends up equal to a real hostname from the paste is then reported.
 - A line whose pieces are all on the keep list can't be faked. It's reported, not silently passed on.
+- Only ASCII letters and digits are faked. Anything else (an accented letter like the "ö" in an
+  invented "bölla-sw-01") counts as a separator and is copied into the fake unchanged, so a line
+  containing any non-ASCII character is reported: the user should check it before sharing.
 
 Pure Python, no web code.
 """
@@ -63,6 +66,11 @@ _PIECE = re.compile(r"[A-Za-z]+|[0-9]+|[^A-Za-z0-9]+")
 # built only if such a piece appears.)
 _DECK_LIMIT = 100_000
 
+# Lowercases A-Z only. str.lower() also changes letters like "İ", sometimes into TWO characters,
+# which would shift every later character and break _apply_case()'s one-for-one copy. Those letters
+# are copied unchanged anyway (they're separators here), so they don't need lowercasing.
+_ASCII_LOWER = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
+
 # How many times to re-roll a clashing random value (big piece sizes only) before giving up.
 _MAX_TRIES = 200
 
@@ -76,15 +84,17 @@ class FakeResult:
     """What fake_hostnames() produced.
 
     `fakes` has exactly one entry per input line (blank for blank lines), so it lines up with the
-    spreadsheet. The two warning lists hold (line number, text) pairs, so the page can name them:
+    spreadsheet. The warning lists hold (line number, text) pairs, so the page can name them:
       `unchanged`     lines that couldn't be faked because every piece is on the keep list;
       `matches_real`  lines whose fake happens to equal a different real hostname from the paste
-                      (only possible when a short piece size ran out of unused values).
+                      (only possible when a short piece size ran out of unused values);
+      `non_ascii`     lines with characters outside ASCII, which were copied into the fake as-is.
     """
 
     fakes: list[str] = field(default_factory=list)
     unchanged: list[tuple[int, str]] = field(default_factory=list)
     matches_real: list[tuple[int, str]] = field(default_factory=list)
+    non_ascii: list[tuple[int, str]] = field(default_factory=list)
 
 
 def split_pieces(hostname: str) -> list[str]:
@@ -128,7 +138,7 @@ def fake_hostnames(
 
     # Everything real in the paste, lowercase: whole names (to spot a fake that equals one) and
     # letter/digit pieces (which fake pieces try to avoid).
-    real_names = {line.lower() for line in lines if line}
+    real_names = {line.translate(_ASCII_LOWER) for line in lines if line}
     real_pieces = {piece for name in real_names for piece in split_pieces(name) if not _is_separator(piece)}
     piece_map = _PieceMap(keep_words, real_pieces, rng)
 
@@ -138,7 +148,7 @@ def fake_hostnames(
             result.fakes.append("")
             continue
 
-        key = line.lower()
+        key = line.translate(_ASCII_LOWER)
         fake = "".join(piece_map.fake(piece) for piece in split_pieces(key))
 
         if fake == key:
@@ -146,6 +156,9 @@ def fake_hostnames(
             result.unchanged.append((line_number, line))
         elif fake in real_names:
             result.matches_real.append((line_number, line))
+        if not line.isascii():
+            # Faked as usual, but its non-ASCII characters are still in the fake: say so.
+            result.non_ascii.append((line_number, line))
 
         result.fakes.append(_apply_case(fake, line, case))
     return result

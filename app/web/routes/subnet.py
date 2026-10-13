@@ -10,7 +10,7 @@ The work is done by app/tools/subnet_calc.py.
 
 from fastapi import APIRouter, Form, Request
 
-from app.tools.subnet_calc import SubnetError, calculate, parse_split, split_network
+from app.tools.subnet_calc import SubnetError, calculate, parse_split, read_as_single_host, split_network
 from app.web.responses import OutputBlock, Table, ToolResult, tool_response
 
 router = APIRouter()
@@ -68,7 +68,20 @@ def subnet(request: Request, address: str = Form(""), split: str = Form("")):
         table = Table(headers=["Subnet", "Usable range", "Broadcast"], rows=rows, note=note)
         blocks = [OutputBlock(download="subnets", lines=[str(s) for s in subnets], title="Subnets")]
 
-    result = ToolResult(kind="subnet", summary=summary, details=details, table=table, blocks=blocks)
+    # 0.0.0.0 and 255.255.255.255 are read as one host, but each also means "any" in the other
+    # notation (mask 0.0.0.0, wildcard 255.255.255.255). Say which way it was read.
+    warnings = []
+    size = read_as_single_host(address)
+    if size:
+        other = "mask" if size == "0.0.0.0" else "wildcard"
+        warnings.append(
+            f'Read {size} as a single host (/32). As a {other} it would mean "any"; '
+            "if that's what you meant, type 0.0.0.0/0."
+        )
+
+    result = ToolResult(
+        kind="subnet", summary=summary, warnings=warnings, details=details, table=table, blocks=blocks
+    )
     return tool_response(request, result, form)
 
 

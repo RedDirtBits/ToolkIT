@@ -163,3 +163,15 @@ def test_format_block_unknown_style():
 def test_format_item():
     assert format_item(net("192.0.2.5/32")) == "192.0.2.5"
     assert format_item(net("192.0.2.0/24")) == "192.0.2.0/24"
+
+
+def test_lines_read_as_single_host_are_recorded():
+    paste = "192.0.2.5 0.0.0.0\n192.0.2.0/24\n0.0.0.0 255.255.255.255\nnot an ip 0.0.0.0"
+    result = clean_up(paste)
+    # The invalid last line isn't recorded here: it's in `invalid`.
+    assert result.read_as_host == [(1, "192.0.2.5 0.0.0.0"), (3, "0.0.0.0 255.255.255.255")]
+    assert net("0.0.0.0/32") in result.original  # read as one host, not as "any"
+
+
+def test_no_ambiguous_lines_records_nothing():
+    assert clean_up("192.0.2.5\n192.0.2.0/24\n198.51.100.0 0.0.0.255").read_as_host == []
