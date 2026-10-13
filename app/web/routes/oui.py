@@ -48,7 +48,8 @@ async def lookup(request: Request):
 
     db = request.app.state.oui.db
     if db is None:
-        return refuse(NO_LIST)
+        # No files yet, or files that couldn't be read (oui_state.py says why).
+        return refuse(request.app.state.oui.error or NO_LIST)
     if not macs.strip():
         return refuse("Type or paste a MAC address (or a prefix like 00:1a:2b).")
     if len(macs.splitlines()) > settings.MAX_CONVERT_LINES:
@@ -107,7 +108,8 @@ async def search(request: Request):
 
     db = request.app.state.oui.db
     if db is None:
-        return refuse(NO_LIST)
+        # No files yet, or files that couldn't be read (oui_state.py says why).
+        return refuse(request.app.state.oui.error or NO_LIST)
     try:
         matches = db.search(vendor)
     except OUIDataError as error:

@@ -170,6 +170,8 @@ which also says how many unused addresses it includes.</p>
       <code>https://standards-oui.ieee.org/oui36/oui36.csv</code>. Then on the <b>OUI lookup</b> tab, choose each
       one with <b>Import file</b>.</td></tr>
   <tr><td>OUI lookup says there's no vendor list yet</td><td>Click <b>Update from IEEE</b> at the bottom of the <b>OUI lookup</b> tab (once).</td></tr>
+  <tr><td>OUI lookup says the vendor list couldn't be read</td><td>A file in the list is damaged or locked. Click <b>Update from IEEE</b> (or Import the files again) to replace it. The other tools keep working meanwhile.</td></tr>
+  <tr><td><b>Update</b> or <b>Import</b> says it couldn't save</td><td>ToolkIT can't write to its own folder (a protected folder, a full disk, or antivirus holding the file). Move the ToolkIT folder somewhere you can write to, such as Documents, and try again.</td></tr>
   <tr><td>A MAC says "Locally administered"</td><td>That's not an error: the address was made up by software (phones and laptops use random "private" MACs), so no vendor owns it.</td></tr>
   <tr><td>Lines are listed as "skipped"</td><td>Those lines weren't addresses, networks or VLANs (e.g. a heading or a port number). Everything else is still processed.</td></tr>
   <tr><td>The Copy button says <b>Press Ctrl+C</b></td><td>Your browser blocked the clipboard, so ToolkIT has selected the text for you: press <b>Ctrl+C</b> to copy it.</td></tr>

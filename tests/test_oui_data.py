@@ -65,6 +65,8 @@ def test_parse_accepts_a_bom_and_crlf():
         (HEADER + "MA-L,001A2B,X,\nMA-M,001A2B3,Y,\n", "mixes registries"),
         (HEADER + "MA-L,001A2,X,\n", "isn't a 6-digit MA-L prefix"),
         (HEADER + "MA-L\n", "too few columns"),
+        # A quote that's never closed: the csv module's own error, reported like the others.
+        (HEADER + 'MA-L,001A2B,"' + "x" * 200_000, "isn't a readable CSV"),
     ],
 )
 def test_parse_refuses_files_that_are_not_registries(text, message):

@@ -51,6 +51,11 @@ TABS = [
 ]
 TAB_KEYS = {key for key, _ in TABS}
 
+# The templates that show the OUI tab's "IEEE list" panel, so need oui_status. Only these get it:
+# a VLAN or subnet result has no reason to look at the vendor-list files on disk (review finding 1,
+# 2026-10-12: a problem with those files once made every tab fail).
+_NEEDS_OUI_STATUS = {"index.html", "_oui_status.html"}
+
 
 def render(request: Request, template: str, status_code: int = 200, /, **context):
     """Render a full page or partial, with the common context added.
@@ -62,5 +67,6 @@ def render(request: Request, template: str, status_code: int = 200, /, **context
     context.setdefault("app_name", settings.APP_NAME)
     context.setdefault("tabs", TABS)
     # The OUI tab's "list from <date>" panel is part of the full page.
-    context.setdefault("oui_status", request.app.state.oui.status())
+    if template in _NEEDS_OUI_STATUS:
+        context.setdefault("oui_status", request.app.state.oui.status())
     return templates.TemplateResponse(request, template, context, status_code=status_code)

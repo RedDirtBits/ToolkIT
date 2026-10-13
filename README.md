@@ -183,8 +183,12 @@ pictures, in `GETTING-STARTED.html`.
   oldest of the three files.
 - **Back up:** nothing to back up. ToolkIT stores no user data; `data/oui/` can always be
   downloaded again.
-- **Recover:** if the OUI lookup misbehaves, delete `data/oui/` and click Update. A failed Update
-  or Import never damages the existing list (files are checked first, then swapped in whole).
+- **Recover:** if the OUI lookup misbehaves, click **Update from IEEE** (or Import the files): it
+  replaces whatever is in `data/oui/`. The OUI tab says when the list can't be read; the other
+  tools keep working either way. Each file is checked first and replaced whole, so a failed
+  download changes nothing. If the disk refuses a save, the message names the folder; when that
+  happens partway through an Update, the files saved before it are new and the list still works:
+  fix the folder and Update again.
 
 **Common errors and what they mean**
 
@@ -195,6 +199,8 @@ pictures, in `GETTING-STARTED.html`.
 | `Forbidden: this app only answers requests addressed to 127.0.0.1` | The page was opened under another name (e.g. the PC's network name) | Use `http://127.0.0.1:8780` or `http://localhost:8780` |
 | "Couldn't reach IEEE" on Update | No internet, or a proxy that needs a login | Download the three files named on the page in the browser, then **Import** each one |
 | "There's no vendor list yet" | `data/oui/` is empty (first run, or deleted) | Click **Update from IEEE** once |
+| "The vendor list in ... couldn't be read" | A file in `data/oui/` is locked, damaged or not an IEEE list | Click **Update from IEEE** (or Import) to replace it |
+| "Couldn't save ... in ..." on Update or Import | The folder is read-only, the disk is full, or antivirus holds the file | Move ToolkIT to a folder you can write to (e.g. Documents), or try again |
 | A count or paste is refused as too large | Over the 65,534-item limit (see below) | Split the request into parts |
 
 ## Known limitations

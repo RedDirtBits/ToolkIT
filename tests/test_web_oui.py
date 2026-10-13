@@ -180,6 +180,59 @@ def test_import_without_a_file(empty_client):
     assert "Choose a file first" in response.text
 
 
+def test_failed_save_is_explained(tmp_path):
+    # A file where the data/oui folder should be: the download works, the save can't.
+    folder = tmp_path / "oui"
+    folder.write_text("not a folder")
+    response = make_client(folder).post("/oui/update", headers=HTMX)
+    assert response.status_code == 200
+    assert "Couldn&#39;t save oui.csv" in response.text and 'id="oui-status"' in response.text
+
+
+# --- a broken or vanished list doesn't take the other tabs down (review finding 1) ----------------
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        b"name,email\nx,y\n",  # text, but not an IEEE list (a wrong file copied in by hand)
+        b"\xff\xfe\x00binary",  # not text at all
+    ],
+)
+def test_unreadable_list_is_a_status_not_a_crash(tmp_path, content):
+    shutil.copytree(FIXTURES, tmp_path / "oui")
+    (tmp_path / "oui" / "oui.csv").write_bytes(content)
+    client = make_client(tmp_path / "oui")
+
+    # Other tabs work as usual.
+    assert client.get("/").status_code == 200
+    vlan = client.post("/vlan", data={"vlans": "10 11 12"}, headers=HTMX)
+    assert vlan.status_code == 200 and "10-12" in vlan.text
+    # The OUI tab says what's wrong and what to do.
+    page = client.get("/?tab=oui").text
+    assert "couldn&#39;t be read" in page and "Update from IEEE" in page
+    lookup = client.post("/oui/lookup", data={"macs": "00:1a:2b"}, headers=HTMX)
+    assert lookup.status_code == 200 and "couldn&#39;t be read" in lookup.text
+    # Update replaces the broken file, and the list works again.
+    assert "Updated from IEEE" in client.post("/oui/update", headers=HTMX).text
+    lookup = client.post("/oui/lookup", data={"macs": "00:1a:2b"}, headers=HTMX)
+    assert "Example Networks, Inc." in lookup.text
+
+
+def test_list_deleted_while_running(tmp_path):
+    # The README's old Recover step: delete data/oui/ while the app runs.
+    shutil.copytree(FIXTURES, tmp_path / "oui")
+    client = make_client(tmp_path / "oui")
+    assert "11 entries" in client.get("/?tab=oui").text  # the list is read and in memory
+    shutil.rmtree(tmp_path / "oui")
+
+    assert client.get("/").status_code == 200
+    assert client.post("/vlan", data={"vlans": "10"}, headers=HTMX).status_code == 200
+    assert "No list yet" in client.get("/?tab=oui").text
+    # Update brings it back.
+    assert "Updated from IEEE: 11 entries" in client.post("/oui/update", headers=HTMX).text
+
+
 def test_update_from_another_site_is_refused(empty_client):
     response = empty_client.post("/oui/update", headers={"Origin": "http://evil.example"})
     assert response.status_code == 403

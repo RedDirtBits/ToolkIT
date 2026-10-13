@@ -173,6 +173,17 @@ def parse_registry_csv(text: str) -> tuple[str, list[Assignment]]:
     length. That matters for the Import button, where any file could be handed in. A prefix listed
     more than once (a few very old ones have several owners) gets all the names, joined with " / ".
     """
+    try:
+        return _parse_rows(text)
+    except csv.Error as error:
+        # The csv module's own complaints (e.g. a quote that's never closed makes one "field" run
+        # past its 128 KB limit) aren't OUIDataError, so nothing above would catch them. Turn
+        # them into one, so a bad file is reported like any other bad file.
+        raise OUIDataError(f"That isn't a readable CSV file ({error}).") from None
+
+
+def _parse_rows(text: str) -> tuple[str, list[Assignment]]:
+    """The work of parse_registry_csv(); csv.Error from here is turned into OUIDataError there."""
     # The csv module copes with quoted names that contain commas ("Nokia, Ltd."). io.StringIO
     # makes the text look like an open file, which is what csv.reader expects.
     reader = csv.reader(io.StringIO(text.lstrip("﻿")))  # ﻿: a "BOM" some editors add

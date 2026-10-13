@@ -81,7 +81,8 @@ nothing). import-linter isn't adopted.
   pasted ever leaves the machine.
 - **Only `oui_data.load_folder()` and `oui_update.py` touch the disk** (the `data/oui/` folder).
   Files are saved with an atomic replace (temporary file, then `os.replace`), and all three IEEE
-  files are downloaded and validated before any is saved.
+  files are downloaded and validated before any is saved. The three saves are one after another,
+  not all-or-nothing (see Error handling).
 - **Random networks never come from 10.0.0.0/8**: only 172.16.0.0/12 and 192.168.0.0/16
   (`ip_generator.py`). A network the user types is used as given.
 - **Every request is size-limited**: 65,534 addresses or lines (IP and MAC generators, converter,
@@ -127,6 +128,8 @@ browser ──POST /ip (htmx)──▶ web/security.py         Host is 127.0.0.1
 
 The OUI tab adds one step: routes reach the in-memory list through `request.app.state.oui`
 (`web/oui_state.py`), which reads the files once, on first use, and again after Update or Import.
+Only the templates that show the "IEEE list" panel (`index.html`, `_oui_status.html`) ask it for its
+status; result fragments for the other tabs never touch the OUI files.
 
 ## Data and storage
 
@@ -179,7 +182,14 @@ settings: credentials or secrets (there are none).
   rows marked "(not a MAC address)" in the OUI lookup), never dropped silently. At most 20 warnings
   are shown, plus a count of the rest.
 - Update/Import: the file is validated before saving; a failed download, a wrong file or a half
-  write leaves the previous list in place.
+  write leaves the previous list in place. A save the disk refuses (read-only, full, locked by
+  antivirus) becomes an `OUIUpdateError` naming the folder and reason. If an Update's second or
+  third save fails, the earlier files are already new: the message says so, and Update again
+  repairs it (decided 2026-10-12: rare, and a mixed list still works).
+- **The OUI list fails soft** (`web/oui_state.py`): files that can't be read (locked, not text,
+  not an IEEE list) or that vanished while the app runs become a status on the OUI tab ("couldn't
+  be read: reason; Update or Import"), never an exception. The other tabs don't depend on the
+  vendor list, so they must keep working when it's broken (review finding 1, 2026-10-12).
 
 ## Testing strategy
 

@@ -5,6 +5,7 @@ fixture files (or fails on purpose). Files are written to pytest's tmp_path, a f
 per test.
 """
 
+import os
 import urllib.error
 from email.message import Message
 from pathlib import Path
@@ -98,6 +99,50 @@ def test_the_real_fetcher_sends_our_user_agent(monkeypatch):
     with pytest.raises(OUIUpdateError):
         update_from_ieee(Path("unused"))
     assert seen["agent"] == USER_AGENT
+
+
+# --- saving fails (the disk, not the download) -----------------------------------------------------
+
+
+def test_unwritable_folder_is_explained(tmp_path):
+    # A FILE where the folder should be: mkdir fails with an OSError on Linux and Windows alike
+    # (a read-only folder would be skipped by permissions when tests run as an administrator).
+    folder = tmp_path / "oui"
+    folder.write_text("not a folder")
+    with pytest.raises(OUIUpdateError, match=r"Couldn't save oui\.csv in .*oui \("):
+        update_from_ieee(folder, fetch=fake_fetch)
+    with pytest.raises(OUIUpdateError, match=r"Couldn't save mam\.csv"):
+        import_file(folder, (FIXTURES / "mam.csv").read_bytes())
+
+
+def test_locked_file_keeps_the_old_one(tmp_path, monkeypatch):
+    # The rename onto the real file is refused, as when antivirus holds it open on Windows.
+    update_from_ieee(tmp_path, fetch=fake_fetch)
+    before = (tmp_path / "oui.csv").read_bytes()
+
+    def refuse(src, dst):
+        raise PermissionError(13, "Permission denied")
+
+    monkeypatch.setattr("app.tools.oui_update.os.replace", refuse)
+    with pytest.raises(OUIUpdateError, match=r"\(Permission denied\)\. The old file is unchanged"):
+        import_file(tmp_path, (FIXTURES / "oui.csv").read_bytes())
+    assert (tmp_path / "oui.csv").read_bytes() == before
+    assert not list(tmp_path.glob("*.tmp"))  # the half-done temporary file is cleaned up
+
+
+def test_failed_second_save_says_the_first_went_through(tmp_path, monkeypatch):
+    real_replace = os.replace
+    calls = []
+
+    def second_one_fails(src, dst):
+        calls.append(dst)
+        if len(calls) == 2:
+            raise OSError(28, "No space left on device")
+        real_replace(src, dst)
+
+    monkeypatch.setattr("app.tools.oui_update.os.replace", second_one_fails)
+    with pytest.raises(OUIUpdateError, match=r"No space left.*oui\.csv was already updated.*Update again"):
+        update_from_ieee(tmp_path, fetch=fake_fetch)
 
 
 # --- import_file ---------------------------------------------------------------------------------

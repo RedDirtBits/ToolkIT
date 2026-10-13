@@ -16,6 +16,8 @@
       <span class="muted">({% for block, count in oui_status.counts.items() %}{{ block }} {{ "{:,}".format(count) }}{{ ", " if not loop.last }}{% endfor %})</span>,
       list from <b>{{ oui_status.list_date.strftime("%d %b %Y") }}</b>.
     </p>
+  {% elif oui_status.error %}
+    <p class="warn-text">{{ oui_status.error }}</p>
   {% else %}
     <p class="warn-text">No list yet. Click <b>Update from IEEE</b> to download it (about 5 MB), or
       Import files downloaded in your browser.</p>

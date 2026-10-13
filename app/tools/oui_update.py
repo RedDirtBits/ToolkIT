@@ -8,6 +8,8 @@ saved, then saved with an "atomic replace": written to a temporary file next to 
 renamed over it in one step. If anything goes wrong halfway (no network, a bad file, the laptop
 going to sleep), the old list is still there, whole. Think of it as writing a new page on a separate
 sheet and only swapping it in once it's finished, rather than erasing and rewriting the page itself.
+That protects each FILE. The three files of an Update are swapped in one after another, so if the
+disk refuses the second one, the first is already new (the message says so; see update_from_ieee).
 
 No web code: the web layer calls these and reloads its in-memory list afterwards.
 """
@@ -66,8 +68,8 @@ def fetch_url(url: str) -> bytes:
 def update_from_ieee(folder: Path, fetch: Fetcher = fetch_url) -> dict[str, int]:
     """Download all three registries and save them. Returns entries per block.
 
-    All three are downloaded and checked first; only then is anything saved. So a failure on the
-    second file leaves all the old files alone, rather than a mix of old and new.
+    All three are downloaded and checked first; only then is anything saved. So a failed DOWNLOAD
+    of the second file leaves all the old files alone, rather than a mix of old and new.
     """
     checked: dict[str, bytes] = {}
     counts: dict[str, int] = {}
@@ -89,8 +91,22 @@ def update_from_ieee(folder: Path, fetch: Fetcher = fetch_url) -> dict[str, int]
         checked[block] = data
         counts[block] = len(entries)
 
+    # Saving is one file at a time, not all-or-nothing (decided 2026-10-12: a failed save is rare,
+    # a part-new part-old list still works, and Update again repairs it). So if a later save
+    # fails, say that the earlier ones did go through.
+    saved: list[str] = []
     for block, data in checked.items():
-        _save(folder, BLOCKS[block][0], data)
+        file_name = BLOCKS[block][0]
+        try:
+            _save(folder, file_name, data)
+        except OUIUpdateError as error:
+            if saved:
+                raise OUIUpdateError(
+                    f"{error} {', '.join(saved)} {'was' if len(saved) == 1 else 'were'} already "
+                    "updated; the list still works, and Update again will finish the job."
+                ) from None
+            raise
+        saved.append(file_name)
     return counts
 
 
@@ -129,7 +145,25 @@ def _check(data: bytes, source: str) -> tuple[str, list]:
 
 
 def _save(folder: Path, file_name: str, data: bytes) -> None:
-    """Write `data` to folder/file_name with an atomic replace (see the module docstring)."""
+    """Write `data` to folder/file_name with an atomic replace (see the module docstring).
+
+    A save can fail for reasons outside the app: a read-only or full disk, a folder the user may
+    not write to, or (on Windows) antivirus holding the file open. Python reports all of these as
+    OSError. The web page only knows how to show OUIUpdateError, so the error is turned into one
+    that names the folder and the reason; otherwise the user would click Update and see nothing.
+    """
+    try:
+        _write_atomically(folder, file_name, data)
+    except OSError as error:
+        # strerror is the plain reason ("Permission denied", "No space left on device").
+        reason = error.strerror or str(error)
+        raise OUIUpdateError(
+            f"Couldn't save {file_name} in {folder} ({reason}). The old file is unchanged."
+        ) from None
+
+
+def _write_atomically(folder: Path, file_name: str, data: bytes) -> None:
+    """The write itself: a temporary file in the same folder, then one rename over the real file."""
     folder.mkdir(parents=True, exist_ok=True)
     # mkstemp creates a new, uniquely named temporary file in the same folder (the same folder
     # matters: a rename is only one atomic step within one disk).
