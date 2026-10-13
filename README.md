@@ -272,6 +272,7 @@ ToolkIT/
 ├── run.bat       # Windows launcher for the portable setup
 ├── build_release.bat      # double-click to build the colleague zip (Windows)
 ├── GETTING-STARTED.html   # the guide shipped in the zip
+├── docs/reviews/          # independent code reviews and what was done about each finding
 └── ARCHITECTURE.md        # how it's built and why: layers, data flow, decisions
 ```
 

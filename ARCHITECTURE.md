@@ -62,6 +62,7 @@ ToolkIT/
 ├── tests/                   # pytest; fixtures/ieee/ holds small invented registry files
 ├── tools/build_release.py   # builds the colleague zip (allowlist, smoke test); not part of the app
 ├── run.bat, build_release.bat, GETTING-STARTED.html
+├── docs/reviews/            # independent reviews, each with its findings' outcomes
 ├── ARCHITECTURE.md          # this file
 └── README.md
 ```
@@ -324,6 +325,24 @@ below shape the design.
 - **Rejected:** a full lock file (`pip freeze` of `python/`, every sub-dependency): exact, but one
   more file to keep in step by hand, for one maintainer and two direct dependencies beyond
   FastAPI's own. Sub-dependencies (e.g. starlette) follow what the pinned FastAPI asks for.
+
+### 2026-10-12: Pre-delivery review passed for v2 (audience: colleagues / public)
+
+- **What v2 is:** all eight tools (IP generator, subnet calculator, IP list cleanup, VLAN list, MAC
+  generator, MAC converter, hostname faker, OUI lookup), at commit 7e068d1 plus this record.
+- **How it was checked:** the pre-delivery checklist, Part A (2026-10-12), then an independent
+  review by a fresh session: [`docs/reviews/2026-10-12-delivery.md`](docs/reviews/2026-10-12-delivery.md).
+  All 10 findings were fixed (two also documented in Known limitations); none disagreed with.
+- **After the fixes:** 473 tests pass on Linux (Python 3.12); 461 pass and 12 are skipped (the
+  release-build tests) on the Windows laptop (embedded Python 3.14); ruff, ruff format, mypy clean.
+  The release zip was built on Windows, extracted to a new folder and used by following
+  GETTING-STARTED.html.
+- **Accepted, not fixed (documented):** `0.0.0.0` / `255.255.255.255` are read as one host (with a
+  warning); characters outside A-Z and 0-9 in hostnames are copied unchanged, and those lines
+  reported; the Import upload is stored whole before its size cap. All in the README's Known
+  limitations.
+- **Not adopted yet** (guardrail stages 2-6): coverage, pre-commit, secret scanning/bandit/pip-audit,
+  import-linter, CI. The checks in use are stage 1 (ruff + mypy) and pytest.
 
 ## Deliberately left out
 
